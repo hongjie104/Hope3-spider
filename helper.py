@@ -26,13 +26,19 @@ def mkDir(path):
 
 def writeFile(content, path, mode='w'):
 	try:
-		f = open(path, mode)
+		f = open(path, mode, encoding='utf-8')
 		f.write(content)
 		f.close()
 		return True
 	except Exception as e:
 		print(e)
 		return False
+
+def log(content):
+	content = '[%s] %s\n' % (now(), content)
+	mkDir(os.path.join('.', 'logs'))
+	log_path = os.path.join('.', 'logs', 'log.log')
+	writeFile(content, log_path, 'a' if os.path.exists(log_path) else 'w')
 
 # 开始下载图片
 def downloadImg(url, imgPath):
@@ -41,7 +47,7 @@ def downloadImg(url, imgPath):
 			print('%s is exists, jump it!' % imgPath)
 			return 2
 		else:
-			parent = '/'.join(imgPath.split('/')[: -1])
+			parent = os.sep.join(imgPath.split(os.sep)[: -1])
 			mkDir(parent)
 			print('[%s] download image: %s' % (now(), url))
 			try:
