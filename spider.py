@@ -9,8 +9,9 @@ __author__ = "32968210@qq.com"
 
 import argparse
 import eastbay
+import footlocker
 
-WEB_DOMAIN = ['eastbay']
+WEB_DOMAIN = ['eastbay', 'footlocker']
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -23,3 +24,5 @@ if __name__ == '__main__':
     else:
         if target == 'eastbay':
             eastbay.start()
+        elif target == 'footlocker':
+            footlocker.start()
