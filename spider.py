@@ -7,6 +7,8 @@
 
 __author__ = "32968210@qq.com"
 
+import helper
+import os
 import argparse
 import eastbay
 import footlocker
@@ -15,6 +17,8 @@ import jimmyjazz
 WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz']
 
 if __name__ == '__main__':
+    for dir_name in WEB_DOMAIN:
+        helper.mkDir(os.path.join('.', 'imgs', dir_name))
     parser = argparse.ArgumentParser()
     parser.add_argument("target", help = "web domain")
     options = parser.parse_args()

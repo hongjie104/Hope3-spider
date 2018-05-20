@@ -45,8 +45,7 @@ def fetch_detail(url):
                 break
     print('size_price_arr = ', size_price_arr)
 
-    sku_id = pq('span#productSKU').text()
-    img_json_str = helper.get('https://images.eastbay.com/is/image/EBFL2/%sMM?req=set,json' % sku_id, returnText=True)
+    img_json_str = helper.get('https://images.eastbay.com/is/image/EBFL2/%sMM?req=set,json' % number, returnText=True)
     img_json = None
     img_url = None
     try:
@@ -57,14 +56,14 @@ def fetch_detail(url):
                 img_url = img_item.get('set').get('item')[0].get('s').get('n')
                 break
     except:
-        img_json_str = helper.get('https://images.eastbay.com/is/image/EBFL2/%s?req=set,json' % sku_id, returnText=True)
+        img_json_str = helper.get('https://images.eastbay.com/is/image/EBFL2/%s?req=set,json' % number, returnText=True)
         img_json = json.loads(img_json_str.replace('/*jsonp*/s7jsonResponse(', '').replace(',"");', ''))
         img_item_arr = img_json.get('set').get('item')
         img_url = img_item_arr[0].get('s').get('n')
         
     img_url = 'https://images.eastbay.com/is/image/%s?wid=600&hei=600&fmt=jpg' % img_url
     print(img_url)
-    helper.downloadImg(img_url, os.path.join('.', 'imgs', 'eastbay', '%s.jpg' % sku_id))
+    helper.downloadImg(img_url, os.path.join('.', 'imgs', 'eastbay', '%s.jpg' % number))
     # helper.log(img_url)
     # https://images.eastbay.com/is/image/EBFL2/10805002_a1?id=KTGQn1&wid=470&hei=263&fmt=jpg
     # https://images.eastbay.com/is/image/EBFL2/10805002_a1?id=KTGQn1&scl=8&req=tile&rect=0,0,250,140&fmt=jpg
