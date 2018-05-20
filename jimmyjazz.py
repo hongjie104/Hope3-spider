@@ -9,7 +9,6 @@ __author__ = "32968210@qq.com"
 
 import helper
 from pyquery import PyQuery
-import re
 import json
 import os
 
@@ -49,15 +48,13 @@ def fetch_page(url):
         # 获取商品详情url
         for a in pq('div.product_grid_image > a'):
             fetch_detail('http://www.jimmyjazz.com%s' % a.get('href'))
-            break
         page += 1
         if page > total_page:
             # 下一页超过最大页数，break
             break
-        break
 
 
 def start():
-    # fetch_page('http://www.jimmyjazz.com/mens/footwear')
-    # fetch_page('https://www.footlocker.com/Womens/Shoes/_-_/N-25Zrj')
-    fetch_detail('http://www.jimmyjazz.com/mens/footwear/jordan-1-mid-sneaker/554724-605?color=Red')
+    fetch_page('http://www.jimmyjazz.com/mens/footwear')
+    fetch_page('http://www.jimmyjazz.com/womens/footwear')
+    # fetch_detail('http://www.jimmyjazz.com/mens/footwear/jordan-1-mid-sneaker/554724-605?color=Red')

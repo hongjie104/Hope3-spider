@@ -13,8 +13,9 @@ import argparse
 import eastbay
 import footlocker
 import jimmyjazz
+import sneakersnstuff
 
-WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz']
+WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff']
 
 if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:
@@ -33,3 +34,5 @@ if __name__ == '__main__':
             footlocker.start()
         elif target == 'jimmyjazz':
             jimmyjazz.start()
+        elif target == 'sneakersnstuff':
+            sneakersnstuff.start()
