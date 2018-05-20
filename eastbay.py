@@ -8,6 +8,7 @@
 __author__ = "32968210@qq.com"
 
 import helper
+import mongo
 from pyquery import PyQuery
 import re
 import json
@@ -59,14 +60,16 @@ def fetch_detail(url):
         img_json_str = helper.get('https://images.eastbay.com/is/image/EBFL2/%s?req=set,json' % number, returnText=True)
         img_json = json.loads(img_json_str.replace('/*jsonp*/s7jsonResponse(', '').replace(',"");', ''))
         img_item_arr = img_json.get('set').get('item')
-        img_url = img_item_arr[0].get('s').get('n')
+        if isinstance(img_item_arr, list):
+            img_url = img_item_arr[0].get('s').get('n')
+        elif isinstance(img_item_arr, dict):
+            img_url = img_item_arr.get('s').get('n')
         
     img_url = 'https://images.eastbay.com/is/image/%s?wid=600&hei=600&fmt=jpg' % img_url
     print(img_url)
     helper.downloadImg(img_url, os.path.join('.', 'imgs', 'eastbay', '%s.jpg' % number))
-    # helper.log(img_url)
-    # https://images.eastbay.com/is/image/EBFL2/10805002_a1?id=KTGQn1&wid=470&hei=263&fmt=jpg
-    # https://images.eastbay.com/is/image/EBFL2/10805002_a1?id=KTGQn1&scl=8&req=tile&rect=0,0,250,140&fmt=jpg
+
+    mongo.insert_pending_goods(name, number, url, size_price_arr, ['%s.jpg' % number], 'eastbay')
 
 
 
@@ -92,5 +95,5 @@ def fetch_page(url):
 
 def start():
     fetch_page('https://www.eastbay.com/Mens/_-_/N-1p')
-    fetch_page('https://www.eastbay.com/Womens/_-_/N-1q')
+    # fetch_page('https://www.eastbay.com/Womens/_-_/N-1q')
     # fetch_detail('https://www.eastbay.com/product/model:171799/sku:10805002/jordan-retro-10-mens/grey/black/')

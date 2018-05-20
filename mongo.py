@@ -15,9 +15,9 @@ pendingGoods = db.pendinggoods
 # goodsTypeColor = db.goodstypecolors
 
 
-# def get_goods(query, fields={}):
-#     global goods
-#     result = goods.find(query, fields)
+# def get_pending_goods(query):
+#     global pendingGoods
+#     result = pendingGoods.find(query, {})
 #     return result
 
 
@@ -41,9 +41,12 @@ pendingGoods = db.pendinggoods
 def get_pending_goods_id():
     global identityCounter
     result = identityCounter.find_one({'model': 'PendingGoods'})
-    count = result.get('count', 1)
-    identityCounter.update({'model': 'PendingGoods'}, {
-        '$inc': {'count': 1}})
+    if result:
+        count = result.get('count', 1)
+        identityCounter.update({'model': 'PendingGoods'}, {'$inc': {'count': 1}})
+    else:
+        count = 0
+        identityCounter.insert({'model': 'PendingGoods', 'count': 1, '__v': 0})
     return count + 1
 
 
@@ -51,6 +54,12 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
     global pendingGoods
     result = pendingGoods.find_one({'url': url})
     if result:
+        pendingGoods.update({'url': url}, {'$set': {
+            'platform': platform,
+            'name': name,
+            'number': number,
+            'size_price_arr': size_price_arr
+        }})
         return False
     id = get_pending_goods_id()
     pendingGoods.insert({
