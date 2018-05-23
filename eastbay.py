@@ -58,17 +58,19 @@ def fetch_detail(url):
                 break
     except:
         img_json_str = helper.get('https://images.eastbay.com/is/image/EBFL2/%s?req=set,json' % number, returnText=True)
-        img_json = json.loads(img_json_str.replace('/*jsonp*/s7jsonResponse(', '').replace(',"");', ''))
-        img_item_arr = img_json.get('set').get('item')
-        if isinstance(img_item_arr, list):
-            img_url = img_item_arr[0].get('s').get('n')
-        elif isinstance(img_item_arr, dict):
-            img_url = img_item_arr.get('s').get('n')
-        
-    img_url = 'https://images.eastbay.com/is/image/%s?wid=600&hei=600&fmt=jpg' % img_url
-    print(img_url)
-    helper.downloadImg(img_url, os.path.join('.', 'imgs', 'eastbay', '%s.jpg' % number))
-
+        try:
+            img_json = json.loads(img_json_str.replace('/*jsonp*/s7jsonResponse(', '').replace(',"");', ''))
+            img_item_arr = img_json.get('set').get('item')
+            if isinstance(img_item_arr, list):
+                img_url = img_item_arr[0].get('s').get('n')
+            elif isinstance(img_item_arr, dict):
+                img_url = img_item_arr.get('s').get('n')
+        except:
+            img_url = None
+    if img_url:
+        img_url = 'https://images.eastbay.com/is/image/%s?wid=600&hei=600&fmt=jpg' % img_url
+        print(img_url)
+        helper.downloadImg(img_url, os.path.join('.', 'imgs', 'eastbay', '%s.jpg' % number))
     mongo.insert_pending_goods(name, number, url, size_price_arr, ['%s.jpg' % number], 'eastbay')
 
 

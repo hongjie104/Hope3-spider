@@ -60,7 +60,7 @@ typings/
 # next.js build output
 .next
 
-.pyc
+*.pyc
 imgs/
 __pycache__
 logs/

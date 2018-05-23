@@ -66,13 +66,13 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
         'id': id,
         'platform': platform,
         'name': name,
-        'colorName': '',
-        'colorValue': '',
+        # 'colorName': '',
+        # 'colorValue': '',
         'number': number,
         'url': url,
         'size_price_arr': size_price_arr,
         'imgs': imgs,
-        'check_date': datetime.datetime(1970, 1, 1),
+        # 'check_date': datetime.datetime(1970, 1, 1),
         'is_checked': False,
         '__v': 0        
     })
