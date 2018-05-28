@@ -22,7 +22,7 @@ def fetch_detail(url):
     number = pq('span#productSKU').text()
     print('number = %s' % number)
 
-    json_str = re.compile(r'var\smodel.*"\};').findall(pq.html())[0]
+    json_str = re.compile(r'var\smodel\s=\s.*"\};').findall(pq.html())[0]
     size_arr = json.loads(json_str.replace('var model = ', '').replace('"};', '"}')).get('AVAILABLE_SIZES')
     try:
         size_arr = [float(size) for size in size_arr]
@@ -31,7 +31,7 @@ def fetch_detail(url):
         return
     size_arr = [float(size) for size in size_arr]
     print(size_arr)
-    json_str = re.compile(r'var\ssizeObj.*"\}\];').findall(pq.html())[0]
+    json_str = re.compile(r'var\ssizeObj\s=\s.*"\}\];').findall(pq.html())[0]
     # available_size_arr = json.loads(json_str.replace('var sizeobj = ', '').replace('"}];', '"}]'))
     available_size_arr = json_str.replace('var sizeObj = ', '').replace('"}];', '"}]')
     available_size_arr = json.loads(available_size_arr)
@@ -96,6 +96,6 @@ def fetch_page(url):
 
 
 def start():
-    fetch_page('https://www.eastbay.com/Mens/_-_/N-1p')
+    # fetch_page('https://www.eastbay.com/Mens/_-_/N-1p')
     # fetch_page('https://www.eastbay.com/Womens/_-_/N-1q')
-    # fetch_detail('https://www.eastbay.com/product/model:171799/sku:10805002/jordan-retro-10-mens/grey/black/')
+    fetch_detail('https://www.eastbay.com/product/model:275308/sku:MFL574NA/new-balance-574-freshfoam-mens/black/white/')
