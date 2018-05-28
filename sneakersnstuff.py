@@ -23,9 +23,7 @@ def fetch_detail(url):
 
     size_price_arr = []
     price = 0.0
-    span_arr = pq('p.product-price > span.price')
-    if len(span_arr) < 1:
-        span_arr = pq('p.product-price > span.sale')
+    span_arr = pq('div.product-price > span')
     price = float(span_arr[0].text.replace('$', ''))
     for span in pq('span.size-type'):
         size = '.'.join(re.compile(r'\d{1,2}').findall(span.text))
