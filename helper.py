@@ -55,7 +55,7 @@ def downloadImg(url, imgPath):
 				r = requests.get(url, stream=True, headers=headers)
 			except Exception as e:
 				print(e)
-				return
+				return -2
 			with open(imgPath, 'wb') as f:
 				for chunk in r.iter_content(chunk_size = 1024): 
 					if chunk:
