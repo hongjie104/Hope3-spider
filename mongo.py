@@ -9,7 +9,7 @@ conn = MongoClient('47.100.164.90', 27017)
 db = conn.Hope3
 # 使用models集合，没有则自动创建
 identityCounter = db.identitycounters
-pendingGoods = db.pendinggoods
+pendingGoods = db.hope_pendinggoods
 # goods = db.goods
 # skus = db.skus
 # goodsTypeColor = db.goodstypecolors
@@ -58,7 +58,9 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
             'platform': platform,
             'name': name,
             'number': number,
-            'size_price_arr': size_price_arr
+            'size_price_arr': size_price_arr,
+            'is_deleted': False,
+            'is_checked': False,
         }})
         return False
     id = get_pending_goods_id()
@@ -74,6 +76,7 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
         'imgs': imgs,
         # 'check_date': datetime.datetime(1970, 1, 1),
         'is_checked': False,
+        'is_deleted': False,
         '__v': 0        
     })
     return True

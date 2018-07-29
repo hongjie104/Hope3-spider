@@ -11,9 +11,12 @@ import helper
 from pyquery import PyQuery
 import json
 import os
+import mongo
+import qiniuUploader
 
 
-def fetch_detail(url):
+def fetch_detail(url, page, total_page):
+    print('page / total_page  => ', page, '/', total_page)
     pq = helper.get(url)
     name = pq('h1.product_title').text()
     print('name = %s' % name)
@@ -21,24 +24,39 @@ def fetch_detail(url):
     print('number = %s' % number)
 
     size_price_arr = []
-    price = float(pq('div.product_price_content > span.product_price').text().replace('$', ''))
+    price = 0.0
+    try:
+        price = float(pq('div.product_price_content > span.product_price').text().replace('$', ''))
+    except:
+        price = 0.0
+    
     for a in pq('div.box_wrapper > a'):
         # print(a.text, a.get('class'))
+        size = 0
+        try:
+            size = float(a.text)
+        except:
+            size = 0
         size_price_arr.append({
             'isInStock': 'piunavailable' not in a.get('class'),
-            'size': float(a.text),
+            'size': size,
             'price': price
         })
     print('size_price_arr = ', size_price_arr)
 
+    mongo.insert_pending_goods(name, number, url, size_price_arr, ['%s.jpg' % number], 'jimmyjazz')
+
     img_url = pq('img.product_image').attr('src')
+    if not img_url.startswith('http'):
+        img_url = 'http://www.jimmyjazz.com' + img_url
     print('img_url = ', img_url)
-    helper.downloadImg(img_url, os.path.join('.', 'imgs', 'jimmyjazz', '%s.jpg' % number))
+    if helper.downloadImg(img_url, os.path.join('.', 'imgs', 'jimmyjazz', '%s.jpg' % number)) == 1:
+    # 上传到七牛
+        qiniuUploader.upload_2_qiniu('jimmyjazz', '%s.jpg' % number, './imgs/jimmyjazz/%s.jpg' % number)
 
 
-def fetch_page(url):
+def fetch_page(url, page = 1):
     total_page = -1
-    page = 1
     while True:
         page_url = '%s??ppg=104&page=%d' % (url, page)
         pq = helper.get(page_url)
@@ -47,14 +65,15 @@ def fetch_page(url):
             total_page = int(div.text.strip().split('of ')[1])
         # 获取商品详情url
         for a in pq('div.product_grid_image > a'):
-            fetch_detail('http://www.jimmyjazz.com%s' % a.get('href'))
+            fetch_detail('http://www.jimmyjazz.com%s' % a.get('href'), page, total_page)
         page += 1
+        print('total_page', total_page)
         if page > total_page:
             # 下一页超过最大页数，break
             break
 
 
 def start():
-    fetch_page('http://www.jimmyjazz.com/mens/footwear')
+    # fetch_page('http://www.jimmyjazz.com/mens/footwear', 21)
     fetch_page('http://www.jimmyjazz.com/womens/footwear')
     # fetch_detail('http://www.jimmyjazz.com/mens/footwear/jordan-1-mid-sneaker/554724-605?color=Red')
