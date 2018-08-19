@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 
 from pymongo import MongoClient
+from bson import objectid
 import datetime
 
 conn = MongoClient('47.100.164.90', 27017)
 # 连接NAS数据库，没有则自动创建
 db = conn.Hope3
 # 使用models集合，没有则自动创建
-identityCounter = db.identitycounters
-pendingGoods = db.hope_pendinggoods
+identity_counter_collection = db.identitycounters
+pending_goods_collection = db.hope_pendinggoods
+goods_collection = db.hope_goods
+sku_history_collection = db.hope_sku_history
 # goods = db.goods
 # skus = db.skus
 # goodsTypeColor = db.goodstypecolors
@@ -37,34 +40,87 @@ pendingGoods = db.hope_pendinggoods
 #     global goodsTypeColor
 #     goodsTypeColor.update(query, update)
 
+def is_pending_goods_deleted(url):
+    global pending_goods_collection
+    result = pending_goods_collection.find_one({'url': url}, {'is_deleted': 1})
+    if result:
+        return result.get('is_deleted', False)
+    return False
+
+
+def is_pending_goods_img_downloaded(url):
+    global pending_goods_collection
+    result = pending_goods_collection.find_one({'url': url}, {'img_downloaded': 1})
+    if result:
+        return result.get('img_downloaded', False)
+    return False
+
+
+def get_goods_update_date(url):
+    global goods_collection
+    goods = goods_collection.find_one({'url': url}, {'update_sku_time': 1})
+    if goods:
+        return goods.get('update_sku_time', datetime.datetime(1970, 1, 1))
+    return datetime.datetime(1970, 1, 1)
+
 
 def get_pending_goods_id():
-    global identityCounter
-    result = identityCounter.find_one({'model': 'PendingGoods'})
+    global identity_counter_collection
+    result = identity_counter_collection.find_one({'model': 'PendingGoods'})
     if result:
         count = result.get('count', 1)
-        identityCounter.update({'model': 'PendingGoods'}, {'$inc': {'count': 1}})
+        identity_counter_collection.update({'model': 'PendingGoods'}, {'$inc': {'count': 1}})
     else:
         count = 0
-        identityCounter.insert({'model': 'PendingGoods', 'count': 1, '__v': 0})
+        identity_counter_collection.insert({'model': 'PendingGoods', 'count': 1, '__v': 0})
     return count + 1
 
 
 def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
-    global pendingGoods
-    result = pendingGoods.find_one({'url': url})
-    if result:
-        pendingGoods.update({'url': url}, {'$set': {
-            'platform': platform,
-            'name': name,
-            'number': number,
+    global pending_goods_collection
+    pending_goods = pending_goods_collection.find_one({'url': url})
+    if pending_goods:
+        global goods_collection
+        global sku_history_collection
+        goods = goods_collection.find_one({'url': url})
+        if goods:
+            sku_arr = goods.get('sku')
+            # 将已有的sku保存到历史表里
+            for sku in sku_arr:
+                sku_history = sku_history_collection.find_one({
+                    'goods_id': goods.get('_id'),
+                    'size': sku.get('size'),
+                    'date': goods.get('update_sku_time', datetime.datetime(2018, 8, 1))
+                })
+                if not sku_history:
+                    sku_history_collection.insert({
+                        # 'goods_id': objectid.ObjectId(goods.)
+                        'goods_id': goods.get('_id'),
+                        'size': sku.get('size'),
+                        'price': sku.get('price'),
+                        # 'date': goods.get('update_sku_time', datetime.datetime.now() - datetime.timedelta(days=1))
+                        'date': goods.get('update_sku_time', datetime.datetime(2018, 8, 1))
+                    })
+            # 将最新的sku数据更新到商品中
+            sku_arr = []
+            for s in size_price_arr:
+                sku_arr.append({
+                    '_id': objectid.ObjectId(),
+                    'size': s.get('size'),
+                    'price': float(s.get('price')),
+                    'isInStock': s.get('isInStock')
+                })
+            goods_collection.update({'_id': goods.get('_id')}, {'$set': {
+                'update_sku_time': datetime.datetime.now(),
+                'sku': sku_arr
+            }})
+        # 将最新的sku数据更新到待处理商品中
+        pending_goods_collection.update({'_id': pending_goods.get('_id')}, {'$set': {
             'size_price_arr': size_price_arr,
-            'is_deleted': False,
-            'is_checked': False,
         }})
         return False
     id = get_pending_goods_id()
-    pendingGoods.insert({
+    pending_goods_collection.insert({
         'id': id,
         'platform': platform,
         'name': name,
@@ -77,6 +133,7 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
         # 'check_date': datetime.datetime(1970, 1, 1),
         'is_checked': False,
         'is_deleted': False,
+        'img_downloaded': True,
         '__v': 0        
     })
     return True

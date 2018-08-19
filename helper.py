@@ -64,6 +64,16 @@ def downloadImg(url, imgPath):
 		return 1
 	return -1
 
+
+# def get_ak_bmsc_cookie(url):
+# 	s = requests.Session()
+# 	s.mount('http://', HTTPAdapter(max_retries=10))
+# 	s.mount('https://', HTTPAdapter(max_retries=10))
+# 	print('get url => ' + url)
+# 	s.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+# 	return s.cookies.get_dict().get('ak_bmsc')
+
+
 def get(url, cookies={}, myHeaders=None, sleep=None, returnText=False):
 	s = requests.Session()
 	s.mount('http://', HTTPAdapter(max_retries=10))
