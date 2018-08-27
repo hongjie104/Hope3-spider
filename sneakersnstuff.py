@@ -23,6 +23,16 @@ def fetch_detail(url, page = 0):
         return
     if url == 'https://www.sneakersnstuff.com/en/product/20527/vans-sk8-hi':
         return
+    # if url == 'https://www.sneakersnstuff.com/en/product/15609/adidas-tech-super':
+    #     return
+    # if url == 'https://www.sneakersnstuff.com/en/product/15249/reebok-instapump-fury-og':
+    #     return
+    # if url == 'https://www.sneakersnstuff.com/en/product/11938/reebok-pump-fury':
+    #     return
+    # if url == 'https://www.sneakersnstuff.com/en/product/12418/reebok-pump-fury':
+    #     return
+    # if url == 'https://www.sneakersnstuff.com/en/product/10920/reebok-classic-leather':
+    #     return
     print('page = %d' % page)
     pq = helper.get(url)
     name = None
@@ -33,13 +43,19 @@ def fetch_detail(url, page = 0):
     except:
         name = pq('p.product-name > span.brand').text()
         name += pq('p.product-name > span.name').text()
+    if name == '':
+        name = pq('div.product-info h5').text().replace('<br/>', '').replace('\n', '')
     print('name = %s' % name)
 
     number = None
     try:
         number = pq('span#product-artno').text().split(':')[1].strip()
     except:
-        number = pq('div#tab1 strong').parents('p').text().replace('Article number:', '').strip()
+        number_arr = pq('div#tab1 strong').parents('p').text().split('\n')
+        for item in number_arr:
+            if 'number:' in item:
+                number = item.replace('Article number:', '').replace('Artikelnummer:', '').strip()
+                break
     print('number = %s' % number)
 
     size_price_arr = []
@@ -84,13 +100,12 @@ def fetch_detail(url, page = 0):
         img_url = pq('div.media > img').attr('src')
     img_url = 'https://www.sneakersnstuff.com%s' % img_url
     print('img_url = ', img_url)
-    if helper.downloadImg(img_url, os.path.join('.', 'imgs', 'sneakersnstuff', '%s.jpg' % number)) > 0:
+    if helper.downloadImg(img_url, os.path.join('.', 'imgs', 'sneakersnstuff', '%s.jpg' % number)) == 1:
         # 上传到七牛
         qiniuUploader.upload_2_qiniu('sneakersnstuff', '%s.jpg' % number, './imgs/sneakersnstuff/%s.jpg' % number)
 
-def fetch_page(url):
+def fetch_page(url, page = 1):
     total_page = -1
-    page = 27
     while True:
         page_url = '%s/%d?orderBy=Published' % (url, page)
         pq = helper.get(page_url)
@@ -107,6 +122,8 @@ def fetch_page(url):
 
 
 def start():
-    fetch_page('https://www.sneakersnstuff.com/en/904/mens-sneakers')
-    # fetch_page('https://www.sneakersnstuff.com/en/908/womens-sneakers')
+    # fetch_page('https://www.sneakersnstuff.com/en/904/mens-sneakers')
+    fetch_page('https://www.sneakersnstuff.com/en/908/womens-sneakers', 12)
     # fetch_detail('https://www.sneakersnstuff.com/en/product/21412/adidas-equipment-running-guidance-93')
+    # fetch_detail('https://www.sneakersnstuff.com/en/product/18465/adidas-eqt-running-guidance-93')
+    # fetch_detail('https://www.sneakersnstuff.com/en/product/1723/stockholm-x-sneakersnstuff')

@@ -64,3 +64,4 @@ typings/
 imgs/
 __pycache__
 logs/
+.qiniu_pythonsdk_hostscache.json
