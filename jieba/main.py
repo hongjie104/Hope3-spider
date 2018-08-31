@@ -52,7 +52,7 @@ def query_by_id(sentence_arr, id):
 def split_by_punctuation(string):
     '''按照标点符号分割string'''
     # 按照标点分割
-    p = re.compile(r'[\s+\.\!\/_,$%^*(+\"\')]+|[+——()?！，。？、]+'.decode('utf-8'))
+    p = re.compile(r'[\s+\.\!\/_,$%^*(+\"\')]+|[：+——?！，。？、]+'.decode('utf-8'))
     txt_arr = []
     txt_arr += p.split(string)
     return [txt for txt in txt_arr if txt != '']
@@ -65,14 +65,20 @@ if __name__ == '__main__':
     txt_arr = split_by_punctuation(txt.replace('\n', ''))
     sentence_arr = []
     for i, txt in enumerate(txt_arr):
-        sentence_arr.append(Sentence(txt, i))
+        if txt != '':
+            sentence_arr.append(Sentence(txt, i))
+    print('开始计算相似度')
+    num_total = len(sentence_arr) * len(sentence_arr)
+    cur = 1    
     for sentence1 in sentence_arr:
         for sentence2 in sentence_arr:
             sentence1.similarity_degree(sentence2)
+            print('当前进度 %d/%d' % (cur, num_total))
+            cur += 1
 
-    # 拿第一个语句测试
-    print('和"%s"最相似的三条语句' % sentence_arr[0])
-    for idx in range(0, 3):
-        similarity_degree = sentence_arr[0].similarity_degree_arr[idx]
-        sentence = query_by_id(sentence_arr, similarity_degree.get('id'))
-        print('相似度:%f, 内容:%s' % (similarity_degree.get('degree'), sentence))
+    for i in range(0, 1001):    
+        print('\n===========和"%s"最相似的三条语句===========' % sentence_arr[i])
+        for idx in range(0, 3):
+            similarity_degree = sentence_arr[i].similarity_degree_arr[idx]
+            sentence = query_by_id(sentence_arr, similarity_degree.get('id'))
+            print('相似度:%f, 内容:%s' % (similarity_degree.get('degree'), sentence))
