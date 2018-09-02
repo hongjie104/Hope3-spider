@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from bson import objectid
 import datetime
 
-conn = MongoClient('47.100.164.90', 27017)
+conn = MongoClient('106.15.93.73', 27017)
 # 连接NAS数据库，没有则自动创建
 db = conn.Hope3
 # 使用models集合，没有则自动创建
