@@ -76,7 +76,7 @@ def get_pending_goods_id():
     return count + 1
 
 
-def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
+def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, platform, platform_id):
     global pending_goods_collection
     pending_goods = pending_goods_collection.find_one({'url': url})
     if pending_goods:
@@ -123,6 +123,8 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, platform):
     pending_goods_collection.insert({
         'id': id,
         'platform': platform,
+        'platform_id': objectid.ObjectId(platform_id),
+        'gender': gender,
         'name': name,
         # 'colorName': '',
         # 'colorValue': '',

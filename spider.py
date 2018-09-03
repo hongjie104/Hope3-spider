@@ -17,7 +17,8 @@ import sneakersnstuff
 import footaction
 import finishline
 
-WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction', 'finishline']
+# WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction', 'finishline']
+WEB_DOMAIN = ['finishline']
 
 if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:

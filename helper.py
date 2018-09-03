@@ -74,11 +74,11 @@ def downloadImg(url, imgPath):
 # 	return s.cookies.get_dict().get('ak_bmsc')
 
 
-def get(url, cookies={}, myHeaders=None, sleep=None, returnText=False):
+def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
 	s = requests.Session()
 	s.mount('http://', HTTPAdapter(max_retries=10))
 	s.mount('https://', HTTPAdapter(max_retries=10))
-	if sleep:
+	if sleep > 0:
 		time.sleep(sleep)
 	print('get url => ' + url)
 	global headers
