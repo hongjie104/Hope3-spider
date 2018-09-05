@@ -9,6 +9,7 @@ __author__ = "32968210@qq.com"
 
 import helper
 import os
+import mongo
 import argparse
 import eastbay
 import footlocker
@@ -16,9 +17,11 @@ import jimmyjazz
 import sneakersnstuff
 import footaction
 import finishline
+import champssports
+import stadiumgoods
 
 # WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction', 'finishline']
-WEB_DOMAIN = ['finishline']
+WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods']
 
 if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:
@@ -31,15 +34,25 @@ if __name__ == '__main__':
     if target not in WEB_DOMAIN:
         print('legal target: [%s] ' % ', '.join(WEB_DOMAIN))
     else:
+        crawl_counter = mongo.get_crawl_counter()
         if target == 'eastbay':
-            eastbay.start()
+            # eastbay.start(crawl_counter)
+            pass
         elif target == 'footlocker':
-            footlocker.start()
+            # footlocker.start(crawl_counter)
+            pass
         elif target == 'jimmyjazz':
-            jimmyjazz.start()
+            # jimmyjazz.start(crawl_counter)
+            pass
         elif target == 'sneakersnstuff':
-            sneakersnstuff.start()
+            # sneakersnstuff.start(crawl_counter)
+            pass
         elif target == 'footaction':
-            footaction.start()
+            # footaction.start(crawl_counter)
+            pass
         elif target == 'finishline':
-            finishline.start()
+            finishline.start(crawl_counter)
+        elif target == 'champssports':
+            champssports.start(crawl_counter)
+        elif target == 'stadiumgoods':
+            stadiumgoods.start(crawl_counter)

@@ -76,7 +76,22 @@ def get_pending_goods_id():
     return count + 1
 
 
-def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, platform, platform_id):
+def get_crawl_counter():
+    '''
+    获取当前爬虫执行的次数
+    '''
+    global identity_counter_collection
+    result = identity_counter_collection.find_one({'model': 'CrawlCounter'})
+    if result:
+        count = result.get('count', 1)
+        identity_counter_collection.update({'model': 'CrawlCounter'}, {'$inc': {'count': 1}})
+    else:
+        count = 0
+        identity_counter_collection.insert({'model': 'CrawlCounter', 'count': 1, '__v': 0})
+    return count + 1
+
+
+def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_value, platform, platform_id, crawl_counter):
     global pending_goods_collection
     pending_goods = pending_goods_collection.find_one({'url': url})
     if pending_goods:
@@ -112,7 +127,8 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, platfo
                 })
             goods_collection.update({'_id': goods.get('_id')}, {'$set': {
                 'update_sku_time': datetime.datetime.now(),
-                'sku': sku_arr
+                'sku': sku_arr,
+                'update_counter': crawl_counter,
             }})
         # 将最新的sku数据更新到待处理商品中
         pending_goods_collection.update({'_id': pending_goods.get('_id')}, {'$set': {
@@ -125,9 +141,8 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, platfo
         'platform': platform,
         'platform_id': objectid.ObjectId(platform_id),
         'gender': gender,
+        'color_value': color_value,
         'name': name,
-        # 'colorName': '',
-        # 'colorValue': '',
         'number': number,
         'url': url,
         'size_price_arr': size_price_arr,

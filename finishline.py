@@ -54,12 +54,13 @@ class PageSpider(Thread):
 
 
 class GoodsSpider(Thread):
-    def __init__(self, url, gender, q):
+    def __init__(self, url, gender, q, crawl_counter):
         # 重写写父类的__init__方法
         super(GoodsSpider, self).__init__()
         self.url = url
         self.gender = gender
         self.q = q
+        self.crawl_counter = crawl_counter
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36 OPR/54.0.2952.71',
             'accept-encoding': 'gzip, deflate, br',
@@ -75,8 +76,8 @@ class GoodsSpider(Thread):
         '''
         解析网站源码
         '''
-        pq = helper.get(self.url, myHeaders=self.headers)
         try:
+            pq = helper.get(self.url, myHeaders=self.headers)
             # 款型名称
             name = pq('input.bVProductName').attr('value')
             # 配色的编号
@@ -92,7 +93,7 @@ class GoodsSpider(Thread):
                 price = 0.0
             aria_label_list = pq('div#productSizes button')
             size_price_arr = [{'size': float(re.compile(r'\d+\.[05]').findall(a.get('aria-label'))[0]), 'price': price, 'isInStock': 'unavailable' not in a.get('aria-label')} for a in aria_label_list]
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, 'finishline', '5ac8594e48555b1ba31896ba')
+            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, '', 'finishline', '5ac8594e48555b1ba31896ba', self.crawl_counter)
             # 下载图片
             img_list = pq('div.pdp-image')
             img_url = 'https:' + (img_list[2].get('data-large') if len(img_list) > 2 else img_list[-1].get('data-large'))
@@ -100,12 +101,12 @@ class GoodsSpider(Thread):
             if result == 1:
                 # 上传到七牛
                 qiniuUploader.upload_2_qiniu('finishline', '%s.jpg' % number, './imgs/finishline/%s.jpg' % number)
-            # print(name, number, self.url, size_price_arr, img_url)
         except:
+            print('[ERROR] => ', self.url)
             self.q.put(self.url)
 
 
-def fetch_page(url_list, gender, q, error_page_url_queue, post_body):
+def fetch_page(url_list, gender, q, error_page_url_queue, post_body, crawl_counter):
     page_thread_list = []
     # 构造所有url
     for url in url_list:
@@ -124,7 +125,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, post_body):
             # 每次启动5个抓取商品的线程
             for i in xrange(5 if queue_size > 5 else queue_size):
                 time.sleep(2)
-                goods_spider = GoodsSpider(q.get(), gender, q)
+                goods_spider = GoodsSpider(q.get(), gender, q, crawl_counter)
                 goods_spider.start()
                 goods_thread_list.append(goods_spider)
             for t in goods_thread_list:
@@ -134,7 +135,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, post_body):
             break
 
 
-def start():
+def start(crawl_counter):
     # 创建一个队列用来保存进程获取到的数据
     q = Queue()
     # 有错误的页面链接
@@ -145,14 +146,14 @@ def start():
         'mnid': 'men_shoes',
         'Ns': 'sku.bestSeller | 1',
         'isAjax': 'true'
-    })
+    }, crawl_counter)
 
     total_page = 23
     base_url = 'https://www.finishline.com/store/women/shoes/_/N-1hednxh?mnid=women_shoes&isAjax=true&No='
     fetch_page([{'base_url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in xrange(1, total_page + 1)], 2, q, error_page_url_queue, {
         'mnid': 'women_shoes',
         'isAjax': 'true',
-    })
+    }, crawl_counter)
 
     # 处理出错的链接
     while not error_page_url_queue.empty():
@@ -160,15 +161,15 @@ def start():
         while not error_page_url_queue.empty():
             error_page_url_list.append(error_page_url_queue.get())
 
-        error_page_men_url_arr = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 1]
-        fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_men_url_arr], 1, q, error_page_url_queue, {
+        error_page_men_url_list = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 1]
+        fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_men_url_list], 1, q, error_page_url_queue, {
             'mnid': 'men_shoes',
             'Ns': 'sku.bestSeller | 1',
             'isAjax': 'true'
-        })
-        error_page_women_url_arr = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 2]
-        fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_women_url_arr], 2, q, error_page_url_queue, {
+        }, crawl_counter)
+        error_page_women_url_list = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 2]
+        fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_women_url_list], 2, q, error_page_url_queue, {
             'mnid': 'women_shoes',
             'isAjax': 'true',
-        })
+        }, crawl_counter)
     print('done')
