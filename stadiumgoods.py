@@ -72,7 +72,7 @@ class GoodsSpider(Thread):
                     continue
                 price = PyQuery(size_span).find('span.product-sizes__price').text().strip()
                 if price.startswith('$'):
-                    price = price.replace('$', '')
+                    price = price.replace('$', '').replace(',', '')
                     size_price_list.append({
                         'size': float(size),
                         'price': float(price),
