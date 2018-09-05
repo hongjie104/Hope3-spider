@@ -50,17 +50,26 @@ class GoodsSpider(Thread):
         try:
             pq = helper.get(self.url, myHeaders=self.headers)
             # 款型名称
-            tmp = pq('div.std').text()
-            tmp = tmp.split('\n')
-            name = tmp[0].strip()
-            # 配色的编号
-            number = tmp[1].strip()
+            name = pq('h1.product-name').text().strip()
             # 颜色尺寸
             # 找出所有的尺寸
             size_span_list = pq('div.product-sizes__options span.product-sizes__detail')
             size_price_list = []
             for size_span in size_span_list:
-                size = PyQuery(size_span).find('span.product-sizes__size').text().strip().replace('W', '')
+                size = PyQuery(size_span).find('span.product-sizes__size').text().strip().replace('W', '').replace('*', '').replace('Y', '')
+                # 还有非数字的size，醉了
+                if size == 'S':
+                    continue
+                elif size == 'M':
+                    continue
+                elif size == 'L':
+                    continue
+                elif size == 'XL':
+                    continue
+                elif size == 'XXL':
+                    continue
+                elif size == 'XXXL':
+                    continue
                 price = PyQuery(size_span).find('span.product-sizes__price').text().strip()
                 if price.startswith('$'):
                     price = price.replace('$', '')
@@ -75,6 +84,8 @@ class GoodsSpider(Thread):
                         'price': 0.0,
                         'isInStock': False
                     })
+            # 配色的编号
+            number = ''
             # 性别
             gender = 0
             # 颜色
@@ -90,6 +101,8 @@ class GoodsSpider(Thread):
                         gender = 2
                 elif key == 'Colorway':
                     color_value = PyQuery(tr).find('td').text().strip()
+                elif key == 'Manufacturer Sku':
+                    number = PyQuery(tr).find('td').text().strip()
             print(name, number, self.url, size_price_list, gender, color_value)
             result = mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], gender, color_value, 'stadiumgoods', '5b8f484b299207efc1fb0904', self.crawl_counter)
             if result:
