@@ -50,7 +50,7 @@ class GoodsSpider(Thread):
         try:
             pq = helper.get(self.url, myHeaders=self.headers)
             # 款型名称
-            name = pq('h1.product-name').text().strip()
+            name = pq('div.product-brand').text().strip() + ' ' + pq('h1.product-name').text().strip()
             # 颜色尺寸
             # 找出所有的尺寸
             size_span_list = pq('div.product-sizes__options span.product-sizes__detail')
