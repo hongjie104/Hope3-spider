@@ -76,18 +76,19 @@ def get_pending_goods_id():
     return count + 1
 
 
-def get_crawl_counter():
+def get_crawl_counter(platform):
     '''
     获取当前爬虫执行的次数
     '''
     global identity_counter_collection
-    result = identity_counter_collection.find_one({'model': 'CrawlCounter'})
+    model_name = '%sCrawlCounter' % platform
+    result = identity_counter_collection.find_one({'model': model_name})
     if result:
         count = result.get('count', 1)
-        identity_counter_collection.update({'model': 'CrawlCounter'}, {'$inc': {'count': 1}})
+        identity_counter_collection.update({'model': model_name}, {'$inc': {'count': 1}})
     else:
         count = 0
-        identity_counter_collection.insert({'model': 'CrawlCounter', 'count': 1, '__v': 0})
+        identity_counter_collection.insert({'model': model_name, 'count': 1, '__v': 0})
     return count + 1
 
 
@@ -161,6 +162,6 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_
         'is_checked': False,
         'is_deleted': False,
         'img_downloaded': True,
-        '__v': 0        
+        '__v': 0
     })
     return True

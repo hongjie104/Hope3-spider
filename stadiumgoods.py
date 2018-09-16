@@ -15,6 +15,9 @@ from Queue import Queue
 from pyquery import PyQuery
 
 
+error_detail_url = {}
+
+
 class PageSpider(Thread):
     def __init__(self, url, q, error_page_url_queue):
         # 重写写父类的__init__方法
@@ -123,8 +126,11 @@ class GoodsSpider(Thread):
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu('stadiumgoods', '%s.jpg' % number, './imgs/stadiumgoods/%s.jpg' % number)
         except:
-            print('[ERROR] => ', self.url)
-            self.q.put(self.url)
+            global error_detail_url
+            error_counter = error_detail_url.get(self.url, 1)
+            print('[ERROR] error timer = %s, url = ', (error_counter, self.url))
+            if error_counter <= 3:
+                self.q.put(self.url)
 
 
 def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
@@ -156,7 +162,8 @@ def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
             break
 
 
-def start(crawl_counter):
+def start():
+    crawl_counter = mongo.get_crawl_counter('stadiumgoods')
     # 创建一个队列用来保存进程获取到的数据
     q = Queue()
     # 有错误的页面链接
