@@ -9,6 +9,7 @@ import json
 import re
 import os
 import time
+import random
 from threading import Thread
 from Queue import Queue
 from pyquery import PyQuery
@@ -50,13 +51,16 @@ class GoodsSpider(Thread):
         try:
             pq = helper.get(self.url, myHeaders=self.headers)
             # 款型名称
-            name = pq('h1.product-name').text().strip()
+            name = pq('div.product-brand').text().strip() + ' ' + pq('h1.product-name').text().strip()
             # 颜色尺寸
             # 找出所有的尺寸
             size_span_list = pq('div.product-sizes__options span.product-sizes__detail')
             size_price_list = []
             for size_span in size_span_list:
-                size = PyQuery(size_span).find('span.product-sizes__size').text().strip().replace('W', '').replace('*', '').replace('Y', '')
+                size = PyQuery(size_span).find('span.product-sizes__size').text().strip()
+                if 'K' in size or 'k' in size or '-' in size:
+                    continue
+                size = re.sub(r'[WwYyCc\*]', '', size)
                 # 还有非数字的size，醉了
                 if size == 'S':
                     continue
@@ -69,6 +73,10 @@ class GoodsSpider(Thread):
                 elif size == 'XXL':
                     continue
                 elif size == 'XXXL':
+                    continue
+                elif size == '':
+                    continue
+                elif size == 'OS':
                     continue
                 price = PyQuery(size_span).find('span.product-sizes__price').text().strip()
                 if price.startswith('$'):
@@ -84,6 +92,8 @@ class GoodsSpider(Thread):
                         'price': 0.0,
                         'isInStock': False
                     })
+            if len(size_price_list) < 1:
+                return
             # 配色的编号
             number = ''
             # 性别
@@ -133,9 +143,9 @@ def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
     while True:
         queue_size = q.qsize()
         if queue_size > 0:
-            # 每次启动5个抓取商品的线程
-            for i in xrange(5 if queue_size > 5 else queue_size):
-                time.sleep(2)
+            # 每次启动10个抓取商品的线程
+            for i in xrange(10 if queue_size > 10 else queue_size):
+                time.sleep(random.uniform(1.0, 3.6))
                 goods_spider = GoodsSpider(q.get(), q, crawl_counter)
                 goods_spider.start()
                 goods_thread_list.append(goods_spider)

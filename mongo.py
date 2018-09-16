@@ -132,7 +132,18 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_
             }})
         # 将最新的sku数据更新到待处理商品中
         pending_goods_collection.update({'_id': pending_goods.get('_id')}, {'$set': {
+            'platform': platform,
+            'platform_id': objectid.ObjectId(platform_id),
+            'gender': gender,
+            'color_value': color_value,
+            'name': name,
+            'number': number,
+            'url': url,
             'size_price_arr': size_price_arr,
+            'imgs': imgs,
+            'is_checked': False,
+            'is_deleted': False,
+            'img_downloaded': True,
         }})
         return False
     id = get_pending_goods_id()
@@ -147,7 +158,6 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_
         'url': url,
         'size_price_arr': size_price_arr,
         'imgs': imgs,
-        # 'check_date': datetime.datetime(1970, 1, 1),
         'is_checked': False,
         'is_deleted': False,
         'img_downloaded': True,
