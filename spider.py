@@ -20,7 +20,7 @@ import finishline
 import champssports
 import stadiumgoods
 
-# WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction', 'finishline']
+# WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
 WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods']
 
 if __name__ == '__main__':
