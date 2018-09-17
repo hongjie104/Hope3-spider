@@ -20,7 +20,7 @@ import finishline
 import champssports
 import stadiumgoods
 
-# WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction', 'finishline']
+# WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
 WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods']
 
 if __name__ == '__main__':
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     if target not in WEB_DOMAIN:
         print('legal target: [%s] ' % ', '.join(WEB_DOMAIN))
     else:
-        crawl_counter = mongo.get_crawl_counter()
+        # crawl_counter = mongo.get_crawl_counter()
         if target == 'eastbay':
             # eastbay.start(crawl_counter)
             pass
@@ -51,8 +51,8 @@ if __name__ == '__main__':
             # footaction.start(crawl_counter)
             pass
         elif target == 'finishline':
-            finishline.start(crawl_counter)
+            finishline.start()
         elif target == 'champssports':
-            champssports.start(crawl_counter)
+            champssports.start()
         elif target == 'stadiumgoods':
-            stadiumgoods.start(crawl_counter)
+            stadiumgoods.start()
