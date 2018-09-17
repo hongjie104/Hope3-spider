@@ -58,7 +58,7 @@ class GoodsSpider(Thread):
             size_price_list = []
             for size_span in size_span_list:
                 size = PyQuery(size_span).find('span.product-sizes__size').text().strip()
-                if 'K' in size or 'k' in size or '-' in size:
+                if 'K' in size or 'k' in size or '-' in size or 'XS' in size:
                     continue
                 size = re.sub(r'[WwYyCc\*]', '', size)
                 # 还有非数字的size，醉了
