@@ -35,7 +35,7 @@ class PageSpider(Thread):
             for i in range(0, total):
                 self.q.put(a_list[i].get('href'))
         except:
-            self.error_page_url_queue.append({'url': self.url, 'gender': self.gender})
+            self.error_page_url_queue.put({'url': self.url, 'gender': self.gender})
 
 
 class GoodsSpider(Thread):

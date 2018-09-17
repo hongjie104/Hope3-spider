@@ -27,7 +27,7 @@ if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:
         helper.mkDir(os.path.join('.', 'imgs', dir_name))
     parser = argparse.ArgumentParser()
-    parser.add_argument("target", help = "web domain")
+    parser.add_argument("target", help=','.join(WEB_DOMAIN))
     options = parser.parse_args()
 
     target = options.target

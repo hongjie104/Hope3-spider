@@ -53,7 +53,8 @@ class PageSpider(Thread):
             for s in str_arr:
                 self.q.put('https://www.finishline.com%s' % s.split(' href="')[1].replace('"', ''))
         except:
-            self.error_page_url_queue.append({'url': self.url, 'count': self.count, 'post_body': self.post_body, 'gender': self.gender})
+            print('[ERROR] => ', self.url)
+            self.error_page_url_queue.put({'url': self.url, 'count': self.count, 'post_body': self.post_body, 'gender': self.gender})
 
 
 class GoodsSpider(Thread):
@@ -149,7 +150,7 @@ def start():
     error_page_url_queue = Queue()
     total_page = 35
     base_url = 'https://www.finishline.com/store/men/shoes/_/N-1737dkj?mnid=men_shoes&Ns=sku.daysAvailable%7C0&isAjax=true&No='
-    fetch_page([{'base_url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, {
+    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, {
         'mnid': 'men_shoes',
         'Ns': 'sku.bestSeller | 1',
         'isAjax': 'true'
@@ -157,7 +158,7 @@ def start():
 
     total_page = 23
     base_url = 'https://www.finishline.com/store/women/shoes/_/N-1hednxh?mnid=women_shoes&isAjax=true&No='
-    fetch_page([{'base_url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in xrange(1, total_page + 1)], 2, q, error_page_url_queue, {
+    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in xrange(1, total_page + 1)], 2, q, error_page_url_queue, {
         'mnid': 'women_shoes',
         'isAjax': 'true',
     }, crawl_counter)
