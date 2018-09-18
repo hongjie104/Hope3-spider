@@ -116,7 +116,7 @@ class GoodsSpider(Thread):
                     color_value = PyQuery(tr).find('td').text().strip()
                 elif key == 'Manufacturer Sku':
                     number = PyQuery(tr).find('td').text().strip()
-            print(name, number, self.url, size_price_list, gender, color_value)
+            # print(name, number, self.url, size_price_list, gender, color_value)
             result = mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], gender, color_value, 'stadiumgoods', '5b8f484b299207efc1fb0904', self.crawl_counter)
             if result:
                 img_url = pq('div.product-gallery-image > img')[0].get('src')
@@ -128,7 +128,7 @@ class GoodsSpider(Thread):
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
-            print('[ERROR] error timer = %s, url = ', (error_counter, self.url))
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url))
             if error_counter <= 3:
                 self.q.put(self.url)
 
@@ -189,7 +189,7 @@ def start():
         error_page_url_list = []
         while not error_page_url_queue.empty():
             error_page_url_list.append(error_page_url_queue.get())
-        print('wrong page url num:', len(error_page_url_list))
+        # print('wrong page url num:', len(error_page_url_list))
         fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
 
-    print('done')
+    helper.log('done')

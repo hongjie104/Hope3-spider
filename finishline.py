@@ -53,7 +53,7 @@ class PageSpider(Thread):
             for s in str_arr:
                 self.q.put('https://www.finishline.com%s' % s.split(' href="')[1].replace('"', ''))
         except:
-            print('[ERROR] => ', self.url)
+            helper.log('[ERROR] => ' + self.url)
             self.error_page_url_queue.put({'url': self.url, 'count': self.count, 'post_body': self.post_body, 'gender': self.gender})
 
 
@@ -108,7 +108,8 @@ class GoodsSpider(Thread):
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
-            print('[ERROR] error timer = %s, url = ', (error_counter, self.url))
+            error_detail_url[self.url] = error_counter + 1
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url))
             if error_counter <= 3:
                 self.q.put(self.url)
 
@@ -180,4 +181,4 @@ def start():
             'mnid': 'women_shoes',
             'isAjax': 'true',
         }, crawl_counter)
-    print('done')
+    helper.log('done')

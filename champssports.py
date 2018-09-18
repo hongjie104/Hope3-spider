@@ -88,7 +88,7 @@ class GoodsSpider(Thread):
                         'price': 0.0,
                         'isInStock': False,
                     })
-            print(name, number, self.url, size_price_list)
+            # helper.log(name, number, self.url, size_price_list)
             result = mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], self.gender, '', 'champssports', '5af1310e48555b1ba3387bcc', self.crawl_counter)
             if result:
                 img_response = helper.get('https://images.champssports.com/is/image/EBFL2/%s?req=imageset,json' % number, returnText=True)
@@ -102,7 +102,7 @@ class GoodsSpider(Thread):
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
-            print('[ERROR] error timer = %s, url = ', (error_counter, self.url))
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url))
             if error_counter <= 3:
                 self.q.put(self.url)
 
@@ -161,4 +161,4 @@ def start():
         error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
         fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
 
-    print('done')
+    helper.log('done')

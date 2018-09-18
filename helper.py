@@ -13,10 +13,10 @@ from requests.adapters import HTTPAdapter
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36'}
 
-def now(): 
+def now():
 	return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
-def today(): 
+def today():
 	return time.strftime('%Y-%m-%d', time.localtime(time.time()))
 
 def mkDir(path):
@@ -26,7 +26,7 @@ def mkDir(path):
 
 def writeFile(content, path, mode='w'):
 	try:
-		f = open(path, mode, encoding='utf-8')
+		f = open(path, mode)
 		f.write(content)
 		f.close()
 		return True
@@ -37,19 +37,20 @@ def writeFile(content, path, mode='w'):
 def log(content):
 	content = '[%s] %s\n' % (now(), content)
 	mkDir(os.path.join('.', 'logs'))
-	log_path = os.path.join('.', 'logs', 'log.log')
+	log_path = os.path.join('.', 'logs', '%s.log' % today())
 	writeFile(content, log_path, 'a' if os.path.exists(log_path) else 'w')
+	print(content)
 
 # 开始下载图片
 def downloadImg(url, imgPath):
 	if url != None:
 		if os.path.exists(imgPath):
-			print('%s is exists, jump it!' % imgPath)
+			log('%s is exists, jump it!' % imgPath)
 			return 2
 		else:
 			parent = os.sep.join(imgPath.split(os.sep)[: -1])
 			mkDir(parent)
-			print('[%s] download image: %s' % (now(), url))
+			log('[%s] download image: %s' % (now(), url))
 			try:
 				global headers
 				r = requests.get(url, stream=True, headers=headers)
@@ -80,14 +81,14 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
 	s.mount('https://', HTTPAdapter(max_retries=10))
 	if sleep > 0:
 		time.sleep(sleep)
-	print('get url => ' + url)
+	log('get url => ' + url)
 	global headers
 	response = None
 	try:
 		response = s.get(url, headers=myHeaders or headers, cookies=cookies, timeout=10)
 	except Exception as err:
-		print('get url error!!! repeat again!!!')
-		print(err)
+		log('get url error!!! repeat again!!!')
+		log(err)
 		return get(url, cookies, myHeaders, sleep or 3, returnText)
 	if response.status_code == 200:
 		pq = None
@@ -97,7 +98,7 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
 			pq = None
 		return response.text if returnText else pq
 	else:
-		print('response.status_code', response.status_code)
+		log('response.status_code: ' + response.status_code)
 		return None
 
 
@@ -108,7 +109,7 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 	s.mount('https://', HTTPAdapter(max_retries=10))
 	if sleep > 0:
 		time.sleep(sleep)
-	print('post url => ' + url)
+	log('post url => ' + url)
 	global headers
 	response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data)
 	if response.status_code == 200:
