@@ -22,7 +22,7 @@ import stadiumgoods
 import flightclub
 
 # WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
-WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods', 'flightclub']
+WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods', 'flightclub', 'eastbay']
 
 if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:
@@ -35,10 +35,8 @@ if __name__ == '__main__':
     if target not in WEB_DOMAIN:
         print('legal target: [%s] ' % ', '.join(WEB_DOMAIN))
     else:
-        # crawl_counter = mongo.get_crawl_counter()
         if target == 'eastbay':
-            # eastbay.start(crawl_counter)
-            pass
+            eastbay.start()
         elif target == 'footlocker':
             # footlocker.start(crawl_counter)
             pass

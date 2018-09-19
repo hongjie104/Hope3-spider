@@ -34,10 +34,10 @@ def writeFile(content, path, mode='w'):
 		print(e)
 		return False
 
-def log(content):
+def log(content, platform):
 	content = '[%s] %s\n' % (now(), content)
 	mkDir(os.path.join('.', 'logs'))
-	log_path = os.path.join('.', 'logs', '%s.log' % today())
+	log_path = os.path.join('.', 'logs', '%s-%s.log' % (today(), platform))
 	writeFile(content, log_path, 'a' if os.path.exists(log_path) else 'w')
 	print(content)
 
@@ -45,12 +45,12 @@ def log(content):
 def downloadImg(url, imgPath):
 	if url != None:
 		if os.path.exists(imgPath):
-			log('%s is exists, jump it!' % imgPath)
+			print('%s is exists, jump it!' % imgPath)
 			return 2
 		else:
 			parent = os.sep.join(imgPath.split(os.sep)[: -1])
 			mkDir(parent)
-			log('[%s] download image: %s' % (now(), url))
+			print('[%s] download image: %s' % (now(), url))
 			try:
 				global headers
 				r = requests.get(url, stream=True, headers=headers)
@@ -81,14 +81,14 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
 	s.mount('https://', HTTPAdapter(max_retries=10))
 	if sleep > 0:
 		time.sleep(sleep)
-	log('get url => ' + url)
+	print('get url => ' + url)
 	global headers
 	response = None
 	try:
 		response = s.get(url, headers=myHeaders or headers, cookies=cookies, timeout=10)
 	except Exception as err:
-		log('get url error!!! repeat again!!!')
-		log(err)
+		print('get url error!!! repeat again!!!')
+		print(err)
 		return get(url, cookies, myHeaders, sleep or 3, returnText)
 	if response.status_code == 200:
 		pq = None
@@ -98,7 +98,7 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
 			pq = None
 		return response.text if returnText else pq
 	else:
-		log('response.status_code: ' + response.status_code)
+		print('response.status_code: ' + response.status_code)
 		return None
 
 
@@ -109,7 +109,7 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 	s.mount('https://', HTTPAdapter(max_retries=10))
 	if sleep > 0:
 		time.sleep(sleep)
-	log('post url => ' + url)
+	print('post url => ' + url)
 	global headers
 	response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data)
 	if response.status_code == 200:

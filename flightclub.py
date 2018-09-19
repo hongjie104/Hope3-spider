@@ -29,7 +29,7 @@ class PageSpider(Thread):
             for a in pq('li.item > a'):
                 self.q.put(a.get('href'))
         except:
-            helper.log('[ERROR] => ' + self.url)
+            helper.log('[ERROR] => ' + self.url, 'flightclub')
             self.error_page_url_queue.put({'url': self.url, 'gender': self.gender})
 
 
@@ -77,8 +77,8 @@ class GoodsSpider(Thread):
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
             error_detail_url[self.url] = error_counter + 1
-            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url))
-            if error_counter <= 3:
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), 'flightclub')
+            if error_counter >= 3:
                 self.q.put(self.url)
 
 
@@ -136,4 +136,4 @@ def start():
 
         error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
         fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
-    helper.log('done')
+    helper.log('done', 'flightclub')

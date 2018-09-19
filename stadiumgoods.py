@@ -128,8 +128,9 @@ class GoodsSpider(Thread):
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
-            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url))
-            if error_counter <= 3:
+            error_detail_url[self.url] = error_counter + 1
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), 'stadiumgoods')
+            if error_counter >= 3:
                 self.q.put(self.url)
 
 
@@ -192,4 +193,4 @@ def start():
         # print('wrong page url num:', len(error_page_url_list))
         fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
 
-    helper.log('done')
+    helper.log('done', 'stadiumgoods')
