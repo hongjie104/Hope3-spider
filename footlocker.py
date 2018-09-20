@@ -96,6 +96,6 @@ def fetch_page(url):
 
 
 def start():
-    # fetch_page('https://www.footlocker.com/Mens/Shoes/_-_/N-24ZrjZ1g6Z1g6')
-    # fetch_page('https://www.footlocker.com/Womens/Shoes/_-_/N-25Zrj')
+    # fetch_page('https://www.footlocker.com/category/mens/shoes.html')
+    # fetch_page('https://www.footlocker.com/category/womens/shoes.html')
     fetch_detail('https://www.footlocker.com/product/model:150073/sku:14571006/jordan-retro-13-mens/black/olive-green/')
