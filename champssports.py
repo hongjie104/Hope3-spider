@@ -103,9 +103,8 @@ class GoodsSpider(Thread):
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
             error_detail_url[self.url] = error_counter + 1
-            helper.log('[ERROR] error timer = %s, url = %s' %
-                       (error_counter, self.url), 'champssports')
-            if error_counter >= 3:
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), 'champssports')
+            if error_counter <= 3:
                 self.q.put(self.url)
 
 

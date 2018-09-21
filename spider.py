@@ -21,7 +21,7 @@ import champssports
 import stadiumgoods
 import flightclub
 
-# WEB_DOMAIN = ['eastbay', 'footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
+# WEB_DOMAIN = ['footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
 WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods', 'flightclub', 'eastbay']
 
 if __name__ == '__main__':
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         if target == 'eastbay':
             eastbay.start()
         elif target == 'footlocker':
-            # footlocker.start(crawl_counter)
+            # footlocker.start()
             pass
         elif target == 'jimmyjazz':
             # jimmyjazz.start(crawl_counter)
