@@ -262,25 +262,6 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
 
 
 def start():
-    crawl_counter = mongo.get_crawl_counter('eastbay')
-    # 创建一个队列用来保存进程获取到的数据
-    q = Queue()
-    # 有错误的页面链接
-    error_page_url_queue = Queue()
-    total_page = 158
-    fetch_page(['https://www.footlocker.com/Mens/Shoes/_-_/N-24ZrjZ1g6Z1g6?cm_PAGE=%d&Rpp=180&crumbs=991%%201878&Nao=%d' % ((page - 1) * 180, (page - 1) * 180) for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
-
-    # total_page = 66
-    # fetch_page(['https://www.eastbay.com/Womens/_-_/N-1q?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) *180, (page - 1) * 180) for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
-
-    # # 处理出错的链接
-    # while not error_page_url_queue.empty():
-    #     error_page_url_list = []
-    #     while not error_page_url_queue.empty():
-    #         error_page_url_list.append(error_page_url_queue.get())
-
-    #     error_page_men_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 1]
-    #     fetch_page(error_page_men_url_list, 1, q, error_page_url_queue, crawl_counter)
-    #     error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
-    #     fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
-    helper.log('done', 'eastbay')
+    # fetch_page('https://www.footlocker.com/category/mens/shoes.html')
+    # fetch_page('https://www.footlocker.com/category/womens/shoes.html')
+    fetch_detail('https://www.footlocker.com/product/model:150073/sku:14571006/jordan-retro-13-mens/black/olive-green/')
