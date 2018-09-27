@@ -20,9 +20,11 @@ import finishline
 import champssports
 import stadiumgoods
 import flightclub
+import stockx
+
 
 # WEB_DOMAIN = ['footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
-WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods', 'flightclub', 'eastbay']
+WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods', 'flightclub', 'eastbay', 'stockx']
 
 if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:
@@ -57,3 +59,5 @@ if __name__ == '__main__':
             stadiumgoods.start()
         elif target == 'flightclub':
             flightclub.start()
+        elif target == 'stockx':
+            stockx.start()
