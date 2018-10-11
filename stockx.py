@@ -50,38 +50,39 @@ class GoodsSpider(Thread):
         '''
         解析网站源码
         '''
-        try:
-            pq = helper.get(self.url, myHeaders=self.headers)
-            # 款型名称
-            name = pq('input.bVProductName').attr('value')
-            # 配色的编号
-            span = pq('div#styleColors span.styleColorIds')
-            number = span.text().strip().replace('- ', '')
-            number = re.sub(re.compile(r'\s'), ' ', number)
-            number = ''.join(number.split())
-            span = pq('div#productPrices span')
-            price = span.text().replace('$', '').split(' ')[0]
-            try:
-                price = float(price)
-            except:
-                price = 0.0
-            aria_label_list = pq('div#productSizes button')
-            size_price_arr = [{'size': float(re.compile(r'\d+\.[05]').findall(a.get('aria-label'))[0]), 'price': price, 'isInStock': 'unavailable' not in a.get('aria-label')} for a in aria_label_list]
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, '', 'stockx', '5bace180c7e854cab4dbcc83', self.crawl_counter)
-            # 下载图片
-            img_list = pq('div.pdp-image')
-            img_url = 'https:' + (img_list[2].get('data-large') if len(img_list) > 2 else img_list[-1].get('data-large'))
-            result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'stockx', '%s.jpg' % number))
-            if result == 1:
-                # 上传到七牛
-                qiniuUploader.upload_2_qiniu('stockx', '%s.jpg' % number, './imgs/stockx/%s.jpg' % number)
-        except:
-            global error_detail_url
-            error_counter = error_detail_url.get(self.url, 1)
-            error_detail_url[self.url] = error_counter + 1
-            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), 'stockx')
-            if error_counter <= 3:
-                self.q.put(self.url)
+        # try:
+        #     pq = helper.get(self.url, myHeaders=self.headers)
+        #     # 款型名称
+        #     name = pq('input.bVProductName').attr('value')
+        #     # 配色的编号
+        #     span = pq('div#styleColors span.styleColorIds')
+        #     number = span.text().strip().replace('- ', '')
+        #     number = re.sub(re.compile(r'\s'), ' ', number)
+        #     number = ''.join(number.split())
+        #     span = pq('div#productPrices span')
+        #     price = span.text().replace('$', '').split(' ')[0]
+        #     try:
+        #         price = float(price)
+        #     except:
+        #         price = 0.0
+        #     aria_label_list = pq('div#productSizes button')
+        #     size_price_arr = [{'size': float(re.compile(r'\d+\.[05]').findall(a.get('aria-label'))[0]), 'price': price, 'isInStock': 'unavailable' not in a.get('aria-label')} for a in aria_label_list]
+        #     mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, '', 'stockx', '5bace180c7e854cab4dbcc83', self.crawl_counter)
+        #     # 下载图片
+        #     img_list = pq('div.pdp-image')
+        #     img_url = 'https:' + (img_list[2].get('data-large') if len(img_list) > 2 else img_list[-1].get('data-large'))
+        #     result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'stockx', '%s.jpg' % number))
+        #     if result == 1:
+        #         # 上传到七牛
+        #         qiniuUploader.upload_2_qiniu('stockx', '%s.jpg' % number, './imgs/stockx/%s.jpg' % number)
+        # except:
+        #     global error_detail_url
+        #     error_counter = error_detail_url.get(self.url, 1)
+        #     error_detail_url[self.url] = error_counter + 1
+        #     helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), 'stockx')
+        #     if error_counter <= 3:
+        #         self.q.put(self.url)
+        pass
 
 
 def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
