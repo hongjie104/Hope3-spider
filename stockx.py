@@ -56,7 +56,7 @@ class GoodsSpider(Thread):
             name = pq('h1.name').text()
             number = ''
             color_value = ''
-            price = 0.0
+            # price = 0.0
             for div in pq('div.detail'):
                 div = PyQuery(div)
                 key = div.find('span.title').text()
@@ -65,20 +65,27 @@ class GoodsSpider(Thread):
                     number = div.find('span')[-1].text.strip()
                 elif key == 'Colorway':
                     color_value = div.find('span')[-1].text.strip()
-                elif key == 'Retail Price':
-                    price = div.find('span')[-1].text.replace('US$', '').strip()
-                    price = float(price)
+                # elif key == 'Retail Price':
+                #     price = div.find('span')[-1].text.replace('US$', '').strip()
+                #     price = float(price)
             # 找出所有尺寸
             size_price_arr = []
             div_list = PyQuery(pq('div.select-options')[0]).find('div.inset div')
             for i in xrange(0, len(div_list), 2):
                 if div_list[i].text == 'All':
                     continue
-                size_price_arr.append({
-                    'size': div_list[i].text,
-                    'price': price if div_list[i + 1].text == 'Bid' else float(div_list[i + 1].text.replace('US$', '').replace(',', '').strip()),
-                    'isInStock': True
-                })
+                if div_list[i + 1].text == 'Bid':
+                    size_price_arr.append({
+                        'size': div_list[i].text,
+                        'price': 0.0,
+                        'isInStock': False
+                    })
+                else:
+                    size_price_arr.append({
+                        'size': div_list[i].text,
+                        'price': float(div_list[i + 1].text.replace('US$', '').replace(',', '').strip()),
+                        'isInStock': True
+                    })
             mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, 'stockx', '5bace180c7e854cab4dbcc83', self.crawl_counter)
             # 下载图片
             img_url = ''
@@ -95,7 +102,7 @@ class GoodsSpider(Thread):
                 elif  img_url_query_list[i].split('=')[0] == 'h':
                     img_url_query_list[i] = 'h=600'
             img_url = img_url_list[0] + '?' + '&'.join(img_url_query_list)
-            print(img_url)
+            # print(img_url)
             result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'stockx', '%s.jpg' % number))
             if result == 1:
                 # 上传到七牛
