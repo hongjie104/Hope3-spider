@@ -92,7 +92,7 @@ def get_crawl_counter(platform):
     return count + 1
 
 
-def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_value, platform, platform_id, crawl_counter):
+def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_value, platform, platform_id, crawl_counter, color_name=''):
     global pending_goods_collection
     pending_goods = pending_goods_collection.find_one({'url': url})
     if pending_goods:
@@ -137,6 +137,7 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_
             'platform_id': objectid.ObjectId(platform_id),
             'gender': gender,
             'color_value': color_value,
+            'color_name': color_name,
             'name': name,
             'number': number,
             'url': url,
@@ -154,6 +155,7 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_
         'platform_id': objectid.ObjectId(platform_id),
         'gender': gender,
         'color_value': color_value,
+        'color_name': color_name,
         'name': name,
         'number': number,
         'url': url,
