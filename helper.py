@@ -98,7 +98,7 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
 			pq = None
 		return response.text if returnText else pq
 	else:
-		print('response.status_code: ' + response.status_code)
+		print('response.status_code: %d' % response.status_code)
 		return None
 
 
