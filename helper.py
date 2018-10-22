@@ -34,6 +34,15 @@ def writeFile(content, path, mode='w'):
 		print(e)
 		return False
 
+
+def readFile(path):
+	if os.path.exists(path):
+		f = open(path)
+		txt = f.read()
+		f.close()
+		return txt
+
+
 def log(content, platform):
 	content = '[%s] %s\n' % (now(), content)
 	mkDir(os.path.join('.', 'logs'))

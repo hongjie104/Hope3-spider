@@ -20,6 +20,8 @@ goods_url_list = []
 
 platform = 'goat'
 
+fetched_url_list = []
+
 
 def fetch_page_json(gender, sort_by, query, page = 1):
     category = ['men', 'women', 'boy', 'girl', 'youth', 'infant'][gender - 1]
@@ -121,6 +123,8 @@ class GoodsSpider(Thread):
                 if result == 1:
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
+                fetched_url_list.append(self.url)
+                helper.writeFile(json.dumps(fetched_url_list), './goat-%s.json' % helper.today())
             else:
                 error_counter = error_detail_url.get(self.url, 1)
                 error_detail_url[self.url] = error_counter + 1
@@ -152,6 +156,7 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
 
     goods_thread_list = []
     global goods_url_list
+    global fetched_url_list
     while True:
         queue_size = q.qsize()
         if queue_size > 0:
@@ -159,6 +164,8 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
             for i in xrange(5 if queue_size > 5 else queue_size):
                 url = q.get()
                 if url in goods_url_list:
+                    continue
+                if url in fetched_url_list:
                     continue
                 time.sleep(3.6)
                 goods_url_list.append(url)
@@ -173,6 +180,14 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
 
 
 def start():
+    # 读取今天已经抓取过的url
+    global fetched_url_list
+    json_txt = helper.readFile('./goat-%s.json' % helper.today())
+    try:
+        if json_txt:
+            fetched_url_list = json.loads(json_txt)
+    except:
+        fetched_url_list = []
     key_list = [
         'Air Jordan 1',
         'jordan 1 retro',
@@ -274,10 +289,10 @@ def start():
     error_page_url_queue = Queue()
 
     for key in key_list:
-        # # 先取男鞋 价格从低到高
-        # fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
-        # # 先取男鞋 价格从高到低
-        # fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
+        # 先取男鞋 价格从低到高
+        fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
+        # 先取男鞋 价格从高到低
+        fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
         # 先取女鞋 价格从低到高
         fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
         # 先取女鞋 价格从高到低
@@ -286,10 +301,10 @@ def start():
         fetch_page(5, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
         # 先取青少年鞋 价格从高到低
         fetch_page(5, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
-        # # 先取婴儿鞋 价格从低到高
-        # fetch_page(6, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
-        # # 先取婴儿鞋 价格从高到低
-        # fetch_page(6, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
+        # 先取婴儿鞋 价格从低到高
+        fetch_page(6, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
+        # 先取婴儿鞋 价格从高到低
+        fetch_page(6, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
 
     # url = 'https://www.goat.com/sneakers/air-jordan-11-retro-low-women-s-snakeskin-833003-103'
     # slug = url.replace('https://www.goat.com/sneakers/', '')
