@@ -16,6 +16,8 @@ import os
 import qiniuUploader
 import math
 
+platform = 'footaction'
+
 # cookies = {
 #     'ak_bmsc': 'E8F58E0198AA3BF03FA774B2AD82144A7D38DA29F74A0000EF384B5B09A3C117~plfYfGa42ztFnSKbskuPKM/6C302118XB02QhZJpWZKCp9wkIdA626ymthoNeRJX232prQkJFXH/1MNlahM+v5kxII4EoX0vYOAYfEokEeyNtWtLH5YJkJ8idDLTAJw5jDxbItLZom337ZbOFcWaK1XdTRLX8PTk9zBeAaBAsk565bZz2Jdr0ocWYm7pfNg+jXfjBFBrBySacjicJoVXdpkRwSgzIbohBT+ex2DvjasxslwpNxb9IJP1wO2yPHQRPa',
 # }
@@ -120,10 +122,11 @@ def fetch_detail(url):
 
     img_url = 'https://images.footaction.com/is/image/%s?wid=600&hei=600&fmt=jpg' % img_url
     print(img_url)
-    helper.downloadImg(img_url, os.path.join('.', 'imgs', 'footaction', '%s.jpg' % number))
-    mongo.insert_pending_goods(name, number, url, size_price_arr, ['%s.jpg' % number], 'footaction')
-    # # 上传到七牛
-    qiniuUploader.upload_2_qiniu('footaction', '%s.jpg' % number, './imgs/footaction/%s.jpg' % number)
+    global platform
+    helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
+    mongo.insert_pending_goods(name, number, url, size_price_arr, ['%s.jpg' % number], platform)
+    # 上传到七牛
+    qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
 
 
 def fetch_page(url, page = 1, total_page = -1):
