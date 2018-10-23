@@ -27,7 +27,7 @@ import kickz
 
 # WEB_DOMAIN = ['footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
 WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods',
-              'flightclub', 'eastbay', 'stockx', 'goat', 'kickz']
+              'flightclub', 'eastbay', 'stockx', 'goat', 'kickz', 'footlocker']
 
 if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:
@@ -43,8 +43,7 @@ if __name__ == '__main__':
         if target == 'eastbay':
             eastbay.start()
         elif target == 'footlocker':
-            # footlocker.start()
-            pass
+            footlocker.start()
         elif target == 'jimmyjazz':
             # jimmyjazz.start(crawl_counter)
             pass

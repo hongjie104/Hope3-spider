@@ -91,12 +91,13 @@ class GoodsSpider(Thread):
                     'isInStock': True
                 })
             # print(size_price_arr)
+            if not mongo.is_pending_goods_img_downloaded(self.url):
+                img_url = pq('img.productDetailPic').attr('src')
+                result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
+                if result == 1:
+                    # 上传到七牛
+                    qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
             mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, platform, '5bc87d6dc7e854cab4875368', self.crawl_counter)
-            img_url = pq('img.productDetailPic').attr('src')
-            result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
-            if result == 1:
-                # 上传到七牛
-                qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
