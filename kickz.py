@@ -30,23 +30,28 @@ class PageSpider(Thread):
         }
         self.cookie = {
             'isSdEnabled': 'false',
-            'isSdEnabled': 'false',
-            'JSESSIONID': '943F30F11E20841D0E8173FCC0CF5057.tomcat-7000',
+            'JSESSIONID': '3523CF3460F24ACD45F82C8F1B793380.tomcat-8000',
             'CS_CONTEXT': 'us',
             'BT_pdc': 'eyJldGNjX2N1c3QiOjAsImVjX29yZGVyIjowLCJldGNjX25ld3NsZXR0ZXIiOjB9',
             '_ga': 'GA1.2.1618271438.1539865433',
-            '_gid': 'GA1.2.545935724.1539865433',
+            '_gid': 'GA1.2.1726487726.1540307036',
             '_gcl_au': '1.1.1382208459.1539865434',
             '_et_coid': '3d91a13471f6ccfb82bf8ae32e206e6f',
             'scarab.visitor': '%22752948ECF9340ED2%22',
             '_hjIncludedInSample': '1',
-            'scarab.mayAdd': '%5B%7B%22i%22%3A%22145946001%22%7D%5D',
+            'scarab.mayAdd': '%5B%7B%22i%22%3A%22141510003%22%7D%5D',
             'scarab.profile': '%22145946001%7C1539866607%22',
             '_gaexp': 'GAX1.2.UNtUbfJwQ9qOrw9pLHrqiw.17915.0',
-            'USER_LAST_VISITED_PRODUCTS': '145946001%3A1%7C138841004%3A1',
+            'USER_LAST_VISITED_PRODUCTS': '145946001%3A1%7C138841004%3A1%7C141510003%3A1',
             'BT_ctst': '',
-            'BT_sdc': 'eyJldF9jb2lkIjoiM2Q5MWExMzQ3MWY2Y2NmYjgyYmY4YWUzMmUyMDZlNmYiLCJyZnIiOiIiLCJ0aW1lIjoxNTM5ODY1NDI4MTk4LCJwaSI6NywicmV0dXJuaW5nIjowLCJldGNjX2NtcCI6Ik5BIn0%3D'
+            'BT_sdc': 'eyJldF9jb2lkIjoiM2Q5MWExMzQ3MWY2Y2NmYjgyYmY4YWUzMmUyMDZlNmYiLCJyZnIiOiIiLCJ0aW1lIjoxLCJwaSI6NSwicmV0dXJuaW5nIjoxLCJldGNjX2NtcCI6Ik5BIn0%3D'
         }
+
+        # USER_LAST_VISITED_PRODUCTS=
+        # _gid=
+        # scarab.mayAdd=
+        # JSESSIONID=
+        # BT_sdc=
 
     def run(self):
         # 获取商品详情url
@@ -54,6 +59,7 @@ class PageSpider(Thread):
             pq = helper.get(self.url, cookies=self.cookie, myHeaders=self.headers)
             for a in pq('a.no-h-over'):
                 self.q.put(a.get('link'))
+                # helper.log('[DEBUG] => ' + a.get('link'), platform)
         except:
             helper.log('[ERROR] => ' + self.url, platform)
             self.error_page_url_queue.put({'url': self.url, 'gender': self.gender})
@@ -91,19 +97,21 @@ class GoodsSpider(Thread):
                     'isInStock': True
                 })
             # print(size_price_arr)
-            if not mongo.is_pending_goods_img_downloaded(self.url):
+            img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+            if not img_downloaded:
                 img_url = pq('img.productDetailPic').attr('src')
                 result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
                 if result == 1:
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, platform, '5bc87d6dc7e854cab4875368', self.crawl_counter)
+                    img_downloaded = True
+            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, platform, '5bc87d6dc7e854cab4875368', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
             error_detail_url[self.url] = error_counter + 1
             helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), platform)
-            if error_counter <= 3:
+            if error_counter < 3:
                 self.q.put(self.url)
 
 
@@ -142,13 +150,13 @@ def start():
     q = Queue()
     # 有错误的页面链接
     error_page_url_queue = Queue()
-    total_page = 20
-    fetch_page(['https://www.kickz.com/us/men/shoes/c?selectedPage=%d' % page
-                for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+    # total_page = 20
+    # fetch_page(['https://www.kickz.com/us/men/shoes/c?selectedPage=%d' % page
+    #             for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
     total_page = 17
     fetch_page(['https://www.kickz.com/us/kids,women/shoes/shoe-sizes/38+,36-2:3,40+,37+,41+,39-1:3,35+,36,36+,39+,39,37,38,41-1:3,42,41,40,39:40,38-2:3,40-2:3,35:36,37:38,37-1:3,41:42/c?selectedPage=%d' % page
-                for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+                for page in xrange(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
 
     # # 处理出错的链接
     # while not error_page_url_queue.empty():
