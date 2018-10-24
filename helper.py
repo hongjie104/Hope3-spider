@@ -120,8 +120,12 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 		time.sleep(sleep)
 	print('post url => ' + url)
 	global headers
-	response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data)
-	if response.status_code == 200:
+	response = None
+	try:
+		response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data)
+	except:
+		response = None
+	if response and response.status_code == 200:
 		return response.text if returnText else PyQuery(response.text)
 	else:
 		return None

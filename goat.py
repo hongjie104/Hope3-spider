@@ -115,16 +115,17 @@ class GoodsSpider(Thread):
                 #     'color_name': color_name,
                 #     'size_price_list': size_price_list,
                 # })
-
-                mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], self.gender, color_value, platform, '5bbf4561c7e854cab45218ba', self.crawl_counter, color_name)
-
-                img_url = product_json.get('original_picture_url')
-                result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
-                if result == 1:
-                    # 上传到七牛
-                    qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
+                img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+                if not img_downloaded:
+                    img_url = product_json.get('original_picture_url')
+                    result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
+                    if result == 1:
+                        # 上传到七牛
+                        qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
+                        img_downloaded = True
+                mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], self.gender, color_value, platform, '5bbf4561c7e854cab45218ba', self.crawl_counter, color_name, img_downloaded)
                 fetched_url_list.append(self.url)
-                helper.writeFile(json.dumps(fetched_url_list), './goat-%s.json' % helper.today())
+                helper.writeFile(json.dumps(fetched_url_list), './logs/goat-%s.json' % helper.today())
             else:
                 error_counter = error_detail_url.get(self.url, 1)
                 error_detail_url[self.url] = error_counter + 1
@@ -157,7 +158,12 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
     goods_thread_list = []
     global goods_url_list
     global fetched_url_list
+    global error_detail_url
     while True:
+        # 如果有问题的详情页数量超过了9，那就认为是网站的反爬虫机制启动了
+        # 就停止爬虫，等几个小时候再启动
+        if len(error_detail_url.items()) > 9:
+            return False
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
@@ -176,13 +182,13 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
                 t.join()
             goods_thread_list = []
         else:
-            break
+            return True
 
 
 def start():
     # 读取今天已经抓取过的url
     global fetched_url_list
-    json_txt = helper.readFile('./goat-%s.json' % helper.today())
+    json_txt = helper.readFile('./logs/goat-%s.json' % helper.today())
     try:
         if json_txt:
             fetched_url_list = json.loads(json_txt)
@@ -290,21 +296,21 @@ def start():
 
     for key in key_list:
         # 先取男鞋 价格从低到高
-        fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
-        # 先取男鞋 价格从高到低
-        fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
-        # 先取女鞋 价格从低到高
-        fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
-        # 先取女鞋 价格从高到低
-        fetch_page(2, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
-        # 先取青少年鞋 价格从低到高
-        fetch_page(5, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
-        # 先取青少年鞋 价格从高到低
-        fetch_page(5, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
-        # 先取婴儿鞋 价格从低到高
-        fetch_page(6, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter)
-        # 先取婴儿鞋 价格从高到低
-        fetch_page(6, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
+        if fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+            # 先取男鞋 价格从高到低
+            if fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+                # 先取女鞋 价格从低到高
+                if fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+                    # 先取女鞋 价格从高到低
+                    if fetch_page(2, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+                        # 先取青少年鞋 价格从低到高
+                        if fetch_page(5, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+                            # 先取青少年鞋 价格从高到低
+                            if fetch_page(5, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+                                # 先取婴儿鞋 价格从低到高
+                                if fetch_page(6, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+                                    # 先取婴儿鞋 价格从高到低
+                                    fetch_page(6, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
 
     # url = 'https://www.goat.com/sneakers/air-jordan-11-retro-low-women-s-snakeskin-833003-103'
     # slug = url.replace('https://www.goat.com/sneakers/', '')
