@@ -84,7 +84,7 @@ def downloadImg(url, imgPath):
 # 	return s.cookies.get_dict().get('ak_bmsc')
 
 
-def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
+def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=False):
 	s = requests.Session()
 	s.mount('http://', HTTPAdapter(max_retries=10))
 	s.mount('https://', HTTPAdapter(max_retries=10))
@@ -105,6 +105,8 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False):
 			pq = PyQuery(response.text)
 		except:
 			pq = None
+		if withCookie:
+			return response.text if returnText else PyQuery(response.text), s.cookies.get_dict()
 		return response.text if returnText else pq
 	else:
 		print('response.status_code: %d' % response.status_code)
