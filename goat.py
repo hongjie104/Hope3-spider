@@ -312,27 +312,6 @@ def start():
                                     # 先取婴儿鞋 价格从高到低
                                     fetch_page(6, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
 
-    # url = 'https://www.goat.com/sneakers/air-jordan-11-retro-low-women-s-snakeskin-833003-103'
-    # slug = url.replace('https://www.goat.com/sneakers/', '')
-    # html = helper.get(url, returnText=True)
-    # json_data = json.loads(re.compile(r'window.__context__.*').findall(html)[0].replace('window.__context__ = ', '')).get('default_store').get('product-templates')
-    # product_json = json_data.get('slug_map').get(slug)
-    # name = product_json.get('name')
-    # number = product_json.get('sku')
-    # color_value = product_json.get('details')
-    # color_name = name.split('\'')[1] if '\'' in name else ''
-    # size_list = product_json.get('formatted_available_sizes_new_v2')
-    # size_price_list = [{'size': float(data.get('size')), 'price': float(data.get('price_cents') / 100), 'isInStock': True} for data in size_list]
-    # # print(name, number ,color_value, color_name, size_price_list)
-
-    # mongo.insert_pending_goods(name, number, url, size_price_list, ['%s.jpg' % number], 2, color_value, platform, '5bbf4561c7e854cab45218ba', 2, color_name)
-
-    # img_url = product_json.get('original_picture_url')
-    # result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
-    # if result == 1:
-    #     # 上传到七牛
-    #     qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
-
     # 处理出错的链接
     # while not error_page_url_queue.empty():
     #     error_page_url_list = []
