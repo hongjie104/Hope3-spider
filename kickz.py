@@ -10,7 +10,10 @@ import time
 import json
 from pyquery import PyQuery
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 
 error_detail_url = {}
@@ -128,7 +131,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
-            for i in xrange(5 if queue_size > 5 else queue_size):
+            for i in range(5 if queue_size > 5 else queue_size):
                 time.sleep(2)
                 goods_spider = GoodsSpider(q.get(), gender, q, crawl_counter)
                 goods_spider.start()
@@ -154,11 +157,11 @@ def start():
     cookie['JSESSIONID'] = tmpCookie.get('JSESSIONID', '')
     total_page = 20
     fetch_page(['https://www.kickz.com/us/men/shoes/c?selectedPage=%d' % page
-                for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+                for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
     total_page = 17
     fetch_page(['https://www.kickz.com/us/kids,women/shoes/shoe-sizes/38+,36-2:3,40+,37+,41+,39-1:3,35+,36,36+,39+,39,37,38,41-1:3,42,41,40,39:40,38-2:3,40-2:3,35:36,37:38,37-1:3,41:42/c?selectedPage=%d' % page
-                for page in xrange(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
+                for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
 
     # # 处理出错的链接
     # while not error_page_url_queue.empty():

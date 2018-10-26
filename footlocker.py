@@ -10,7 +10,10 @@ import time
 import json
 from pyquery import PyQuery
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 
 error_detail_url = {}
@@ -149,7 +152,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
     #     queue_size = q.qsize()
     #     if queue_size > 0:
     #         # 每次启动5个抓取商品的线程
-    #         for i in xrange(5 if queue_size > 5 else queue_size):
+    #         for i in range(5 if queue_size > 5 else queue_size):
     #             time.sleep(2)
     #             goods_spider = GoodsSpider(q.get(), gender, q, crawl_counter)
     #             goods_spider.start()
@@ -170,5 +173,5 @@ def start():
 
     # total_page = 86
     total_page = 1
-    url_list = ['https://www.footlocker.com/api/products/search?currentPage=' + str(page - 1) + '&pageSize=60&query=Men%27s%20Shoes%20%20%20%20&sort=brand-asc&timestamp=2' for page in xrange(1, total_page + 1)]
+    url_list = ['https://www.footlocker.com/api/products/search?currentPage=' + str(page - 1) + '&pageSize=60&query=Men%27s%20Shoes%20%20%20%20&sort=brand-asc&timestamp=2' for page in range(1, total_page + 1)]
     fetch_page(url_list, 1, q, error_page_url_queue, crawl_counter)

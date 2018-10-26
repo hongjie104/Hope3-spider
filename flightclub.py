@@ -8,7 +8,10 @@ import mongo
 import os
 import time
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 
 error_detail_url = {}
@@ -99,7 +102,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
-            for i in xrange(5 if queue_size > 5 else queue_size):
+            for i in range(5 if queue_size > 5 else queue_size):
                 time.sleep(2)
                 goods_spider = GoodsSpider(q.get(), gender, q, crawl_counter)
                 goods_spider.start()
@@ -119,11 +122,11 @@ def start():
     error_page_url_queue = Queue()
     total_page = 70
     base_url = 'https://www.flightclub.com/men?id=446&limit=90&p='
-    fetch_page([base_url + str(page) for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+    fetch_page([base_url + str(page) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
     total_page = 4
     base_url = 'https://www.flightclub.com/women?id=350&limit=90&p='
-    fetch_page([base_url + str(page) for page in xrange(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
+    fetch_page([base_url + str(page) for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
 
     # 处理出错的链接
     while not error_page_url_queue.empty():

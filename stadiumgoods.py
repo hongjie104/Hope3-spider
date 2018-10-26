@@ -11,7 +11,10 @@ import os
 import time
 import random
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 from pyquery import PyQuery
 
 
@@ -151,7 +154,7 @@ def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动10个抓取商品的线程
-            for i in xrange(10 if queue_size > 10 else queue_size):
+            for i in range(10 if queue_size > 10 else queue_size):
                 time.sleep(random.uniform(1.0, 3.6))
                 goods_spider = GoodsSpider(q.get(), q, crawl_counter)
                 goods_spider.start()

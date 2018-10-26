@@ -23,9 +23,9 @@ def get_repeat_number_dict(csv_name):
     repeat_number_dict = {}
     csv_list = read_csv(csv_name)
     num_line = len(csv_list)
-    for i in xrange(0, num_line):
+    for i in range(0, num_line):
         number_list = csv_list[i].split(',')[1:]
-        for j in xrange(i + 1, num_line):
+        for j in range(i + 1, num_line):
             for number in number_list:
                 # if number in csv_list[j]:
                 if number == csv_list[j]:

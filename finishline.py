@@ -8,7 +8,10 @@ import mongo
 import os
 import time
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 
 error_detail_url = {}
@@ -131,7 +134,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, post_body, crawl_count
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
-            for i in xrange(5 if queue_size > 5 else queue_size):
+            for i in range(5 if queue_size > 5 else queue_size):
                 time.sleep(2)
                 goods_spider = GoodsSpider(q.get(), gender, q, crawl_counter)
                 goods_spider.start()
@@ -151,7 +154,7 @@ def start():
     error_page_url_queue = Queue()
     total_page = 35
     base_url = 'https://www.finishline.com/store/men/shoes/_/N-1737dkj?mnid=men_shoes&Ns=sku.daysAvailable%7C0&isAjax=true&No='
-    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, {
+    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in range(1, total_page + 1)], 1, q, error_page_url_queue, {
         'mnid': 'men_shoes',
         'Ns': 'sku.bestSeller | 1',
         'isAjax': 'true'
@@ -159,7 +162,7 @@ def start():
 
     total_page = 23
     base_url = 'https://www.finishline.com/store/women/shoes/_/N-1hednxh?mnid=women_shoes&isAjax=true&No='
-    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in xrange(1, total_page + 1)], 2, q, error_page_url_queue, {
+    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in range(1, total_page + 1)], 2, q, error_page_url_queue, {
         'mnid': 'women_shoes',
         'isAjax': 'true',
     }, crawl_counter)

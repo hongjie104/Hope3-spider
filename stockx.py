@@ -9,7 +9,10 @@ import mongo
 import os
 import time
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 from pyquery import PyQuery
 
 
@@ -71,7 +74,7 @@ class GoodsSpider(Thread):
             # 找出所有尺寸
             size_price_arr = []
             div_list = PyQuery(pq('div.select-options')[0]).find('div.inset div')
-            for i in xrange(0, len(div_list), 2):
+            for i in range(0, len(div_list), 2):
                 if div_list[i].text == 'All':
                     continue
                 if div_list[i + 1].text == 'Bid':
@@ -96,7 +99,7 @@ class GoodsSpider(Thread):
                 img_url = pq('div.product-media img').attr('src')
             img_url_list = img_url.split('?')
             img_url_query_list = img_url_list[1].split('&')
-            for i in xrange(0, len(img_url_query_list)):
+            for i in range(0, len(img_url_query_list)):
                 if img_url_query_list[i].split('=')[0] == 'w':
                     img_url_query_list[i] = 'w=600'
                 elif  img_url_query_list[i].split('=')[0] == 'h':
@@ -133,7 +136,7 @@ def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
-            for i in xrange(5 if queue_size > 5 else queue_size):
+            for i in range(5 if queue_size > 5 else queue_size):
                 time.sleep(2)
                 goods_spider = GoodsSpider(q.get(), q, crawl_counter)
                 goods_spider.start()
@@ -156,7 +159,7 @@ def start():
     json_data = json.loads(json_txt)
     pagination = json_data.get('Pagination')
     total_page = pagination.get('lastPage')
-    fetch_page(['https://stockx.com/api/browse?order=DESC&page=%d&productCategory=sneakers&sort=release_date' % page for page in xrange(1, total_page + 1)], q, error_page_url_queue, crawl_counter)
+    fetch_page(['https://stockx.com/api/browse?order=DESC&page=%d&productCategory=sneakers&sort=release_date' % page for page in range(1, total_page + 1)], q, error_page_url_queue, crawl_counter)
 
     # 处理出错的链接
     while not error_page_url_queue.empty():

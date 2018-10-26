@@ -9,7 +9,10 @@ import os
 import time
 import json
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 import urllib
 
 
@@ -30,6 +33,10 @@ def fetch_page_json(gender, sort_by, query, page = 1):
         json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_by_price_asc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
     elif sort_by == 'PRICE_HIGH_LOW':
         json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_by_price_desc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
+    try:
+        query = urllib.quote(query.upper())
+    except:
+        query = urllib.parse.quote(query.upper())
     html = helper.post(json_url, json.dumps({
         'distinct': True,
         'facets': ['size'],
@@ -46,7 +53,7 @@ def fetch_page_json(gender, sort_by, query, page = 1):
         'content-type': 'application/x-www-form-urlencoded',
         'Host': '2fwotdvm2o-dsn.algolia.net',
         'Origin': 'https://www.goat.com',
-        'Referer': 'https://www.goat.com/search?category=%s&query=%s&sortBy=%s' % (category, urllib.quote(query.upper()), sort_by),
+        'Referer': 'https://www.goat.com/search?category=%s&query=%s&sortBy=%s' % (category, query, sort_by),
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36 OPR/55.0.2994.61'
     }, returnText=True)
     return json.loads(html)
@@ -167,7 +174,7 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
-            for i in xrange(5 if queue_size > 5 else queue_size):
+            for i in range(5 if queue_size > 5 else queue_size):
                 url = q.get()
                 if url in goods_url_list:
                     continue

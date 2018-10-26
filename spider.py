@@ -23,6 +23,7 @@ import flightclub
 import stockx
 import goat
 import kickz
+import sys
 
 
 # WEB_DOMAIN = ['footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']

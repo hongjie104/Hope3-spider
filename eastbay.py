@@ -10,7 +10,10 @@ import time
 import json
 from pyquery import PyQuery
 from threading import Thread
-from Queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 
 error_detail_url = {}
@@ -145,7 +148,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
         queue_size = q.qsize()
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
-            for i in xrange(5 if queue_size > 5 else queue_size):
+            for i in range(5 if queue_size > 5 else queue_size):
                 time.sleep(2)
                 goods_spider = GoodsSpider(q.get(), gender, q, crawl_counter)
                 goods_spider.start()
@@ -164,10 +167,10 @@ def start():
     # 有错误的页面链接
     error_page_url_queue = Queue()
     total_page = 158
-    fetch_page(['https://www.eastbay.com/Mens/_-_/N-1p?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) * 180, (page - 1) * 180) for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+    fetch_page(['https://www.eastbay.com/Mens/_-_/N-1p?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
     total_page = 66
-    fetch_page(['https://www.eastbay.com/Womens/_-_/N-1q?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) *180, (page - 1) * 180) for page in xrange(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+    fetch_page(['https://www.eastbay.com/Womens/_-_/N-1q?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) *180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
     # 处理出错的链接
     while not error_page_url_queue.empty():
