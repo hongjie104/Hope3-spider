@@ -45,9 +45,10 @@ def readFile(path):
 
 def log(content, platform):
 	content = '[%s] %s\n' % (now(), content)
-	mkDir(os.path.join('.', 'logs'))
-	log_path = os.path.join('.', 'logs', '%s-%s.log' % (today(), platform))
-	writeFile(content, log_path, 'a' if os.path.exists(log_path) else 'w')
+	if platform:
+		mkDir(os.path.join('.', 'logs'))
+		log_path = os.path.join('.', 'logs', '%s-%s.log' % (today(), platform))
+		writeFile(content, log_path, 'a' if os.path.exists(log_path) else 'w')
 	print(content)
 
 # 开始下载图片
@@ -84,20 +85,20 @@ def downloadImg(url, imgPath):
 # 	return s.cookies.get_dict().get('ak_bmsc')
 
 
-def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=False):
+def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=False, platform=None):
 	s = requests.Session()
 	s.mount('http://', HTTPAdapter(max_retries=10))
 	s.mount('https://', HTTPAdapter(max_retries=10))
 	if sleep > 0:
 		time.sleep(sleep)
-	print('get url => ' + url)
+	log('get url => ' + url, platform)
 	global headers
 	response = None
 	try:
 		response = s.get(url, headers=myHeaders or headers, cookies=cookies, timeout=10)
 	except Exception as err:
-		print('get url error!!! repeat again!!!')
-		print(err)
+		log('get url error!!! repeat again!!!', platform)
+		log(err, platform)
 		return get(url, cookies, myHeaders, sleep or 3, returnText)
 	if response.status_code == 200:
 		pq = None
@@ -109,7 +110,7 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=F
 			return response.text if returnText else PyQuery(response.text), s.cookies.get_dict()
 		return response.text if returnText else pq
 	else:
-		print('response.status_code: %d' % response.status_code)
+		log('response.status_code: %d' % response.status_code, platform)
 		return None
 
 
