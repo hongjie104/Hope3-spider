@@ -98,7 +98,7 @@ class GoodsSpider(Thread):
         global error_detail_url
         try:
             slug = self.url.replace('https://www.goat.com/sneakers/', '')
-            html = helper.get(self.url, returnText=True)
+            html = helper.get(self.url, returnText=True, platform=platform)
             if html:
                 json_data = json.loads(re.compile(r'window.__context__.*').findall(html)[0].replace('window.__context__ = ', '')).get('default_store').get('product-templates')
                 product_json = json_data.get('slug_map').get(slug)
