@@ -55,7 +55,7 @@ def fetch_page_json(gender, sort_by, query, page = 1):
         'Origin': 'https://www.goat.com',
         'Referer': 'https://www.goat.com/search?category=%s&query=%s&sortBy=%s' % (category, query, sort_by),
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36 OPR/55.0.2994.61'
-    }, returnText=True)
+    }, returnText=True, platform=platform)
     return json.loads(html)
 
 

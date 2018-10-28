@@ -114,14 +114,14 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=F
 		return None
 
 
-def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, cookies={}, sleep=0, returnText=False):
+def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, cookies={}, sleep=0, returnText=False, platform=None):
 	'''post'''
 	s = requests.Session()
 	s.mount('http://', HTTPAdapter(max_retries=10))
 	s.mount('https://', HTTPAdapter(max_retries=10))
 	if sleep > 0:
 		time.sleep(sleep)
-	print('post url => ' + url)
+	log('post url => ' + url, platform)
 	global headers
 	response = None
 	try:
