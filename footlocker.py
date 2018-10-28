@@ -64,6 +64,7 @@ class PageSpider(Thread):
 #         解析网站源码
 #         '''
 #         try:
+#             time.sleep(1.2)
 #             pq = helper.get(self.url, myHeaders=self.headers)
 #             name = pq('h1.product_title').text()
 #             if not name:
@@ -140,7 +141,6 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
     # 构造所有url
     for url in url_list:
         # 创建并启动线程
-        time.sleep(1.2)
         page_spider = PageSpider(url, q, error_page_url_queue, gender)
         page_spider.start()
         page_thread_list.append(page_spider)

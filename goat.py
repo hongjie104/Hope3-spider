@@ -186,6 +186,7 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
                 if url in goods_url_list:
                     continue
                 if url in fetched_url_list:
+                    helper.log('[info] fetched url = %s' % self.url, platform)
                     continue
                 goods_url_list.append(url)
                 goods_spider = GoodsSpider(url, gender, q, crawl_counter)

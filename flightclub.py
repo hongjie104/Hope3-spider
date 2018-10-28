@@ -49,6 +49,7 @@ class GoodsSpider(Thread):
         '''
         解析网站源码
         '''
+        time.sleep(2)
         try:
             pq = helper.get(self.url)
             name = pq('div.nosto_product > span.name').text()
@@ -103,7 +104,6 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
         if queue_size > 0:
             # 每次启动5个抓取商品的线程
             for i in range(5 if queue_size > 5 else queue_size):
-                time.sleep(2)
                 goods_spider = GoodsSpider(q.get(), gender, q, crawl_counter)
                 goods_spider.start()
                 goods_thread_list.append(goods_spider)
