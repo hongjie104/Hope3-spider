@@ -101,57 +101,58 @@ class GoodsSpider(Thread):
         '''
         解析网站源码
         '''
+        time.sleep(3.6)
         global platform
         global error_detail_url
-        # try:
-        slug = self.url.replace('https://www.goat.com/sneakers/', '')
-        html = helper.get(self.url, returnText=True, platform=platform)
-        if html:
-            json_data = re.compile(r'window.__context__.*')
-            json_data = json_data.findall(html)[0]
-            json_data = json_data.replace('window.__context__ = ', '')
-            json_data = json_data.replace('</script>', '')
-            json_data = json.loads(json_data)
-            json_data = json_data.get('default_store')
-            json_data = json_data.get('product-templates')
-            product_json = json_data.get('slug_map').get(slug)
-            name = product_json.get('name')
-            number = product_json.get('sku')
-            color_value = product_json.get('details')
-            color_name = name.split('\'')[1] if '\'' in name else ''
-            size_list = product_json.get('formatted_available_sizes_new_v2')
-            size_price_list = [{'size': float(data.get('size')), 'price': float(data.get('price_cents') / 100), 'isInStock': True} for data in size_list]
-            # print({
-            #     'name': name,
-            #     'number': number,
-            #     'color_value': color_value,
-            #     'color_name': color_name,
-            #     'size_price_list': size_price_list,
-            # })
-            img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
-            if not img_downloaded:
-                img_url = product_json.get('original_picture_url')
-                result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
-                if result == 1:
-                    # 上传到七牛
-                    qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
-                    img_downloaded = True
-            mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], self.gender, color_value, platform, '5bbf4561c7e854cab45218ba', self.crawl_counter, color_name, img_downloaded)
-            fetched_url_list.append(self.url)
-            helper.writeFile(json.dumps(fetched_url_list), './logs/goat-%s.json' % helper.today())
-        else:
+        try:
+            slug = self.url.replace('https://www.goat.com/sneakers/', '')
+            html = helper.get(self.url, returnText=True, platform=platform)
+            if html:
+                json_data = re.compile(r'window.__context__.*')
+                json_data = json_data.findall(html)[0]
+                json_data = json_data.replace('window.__context__ = ', '')
+                json_data = json_data.replace('</script>', '')
+                json_data = json.loads(json_data)
+                json_data = json_data.get('default_store')
+                json_data = json_data.get('product-templates')
+                product_json = json_data.get('slug_map').get(slug)
+                name = product_json.get('name')
+                number = product_json.get('sku')
+                color_value = product_json.get('details')
+                color_name = name.split('\'')[1] if '\'' in name else ''
+                size_list = product_json.get('formatted_available_sizes_new_v2')
+                size_price_list = [{'size': float(data.get('size')), 'price': float(data.get('price_cents') / 100), 'isInStock': True} for data in size_list]
+                # print({
+                #     'name': name,
+                #     'number': number,
+                #     'color_value': color_value,
+                #     'color_name': color_name,
+                #     'size_price_list': size_price_list,
+                # })
+                img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+                if not img_downloaded:
+                    img_url = product_json.get('original_picture_url')
+                    result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
+                    if result == 1:
+                        # 上传到七牛
+                        qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
+                        img_downloaded = True
+                mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], self.gender, color_value, platform, '5bbf4561c7e854cab45218ba', self.crawl_counter, color_name, img_downloaded)
+                fetched_url_list.append(self.url)
+                helper.writeFile(json.dumps(fetched_url_list), './logs/goat-%s.json' % helper.today())
+            else:
+                error_counter = error_detail_url.get(self.url, 1)
+                error_detail_url[self.url] = error_counter + 1
+                helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), platform)
+                if error_counter < 3:
+                    self.q.put(self.url)
+        except Exception as e:
             error_counter = error_detail_url.get(self.url, 1)
             error_detail_url[self.url] = error_counter + 1
             helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), platform)
+            helper.log(e, platform)
             if error_counter < 3:
                 self.q.put(self.url)
-        # except Exception as e:
-        #     error_counter = error_detail_url.get(self.url, 1)
-        #     error_detail_url[self.url] = error_counter + 1
-        #     helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), platform)
-        #     helper.log(e, platform)
-        #     if error_counter < 3:
-        #         self.q.put(self.url)
 
 
 def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
@@ -186,7 +187,6 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
                     continue
                 if url in fetched_url_list:
                     continue
-                time.sleep(3.6)
                 goods_url_list.append(url)
                 goods_spider = GoodsSpider(url, gender, q, crawl_counter)
                 goods_spider.start()
@@ -670,21 +670,20 @@ def start():
     for key in key_list:
         # 先取男鞋 价格从低到高
         if fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
-            # # 先取男鞋 价格从高到低
-            # if fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
-            #     # 先取女鞋 价格从低到高
-            #     if fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
-            #         # 先取女鞋 价格从高到低
-            #         if fetch_page(2, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
-            #             # 先取青少年鞋 价格从低到高
-            #             if fetch_page(5, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
-            #                 # 先取青少年鞋 价格从高到低
-            #                 if fetch_page(5, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
-            #                     # 先取婴儿鞋 价格从低到高
-            #                     if fetch_page(6, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
-            #                         # 先取婴儿鞋 价格从高到低
-            #                         fetch_page(6, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
-            pass
+            # 先取男鞋 价格从高到低
+            if fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+                # 先取女鞋 价格从低到高
+                if fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+                    # 先取女鞋 价格从高到低
+                    if fetch_page(2, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+                        # 先取青少年鞋 价格从低到高
+                        if fetch_page(5, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+                            # 先取青少年鞋 价格从高到低
+                            if fetch_page(5, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+                                # 先取婴儿鞋 价格从低到高
+                                if fetch_page(6, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+                                    # 先取婴儿鞋 价格从高到低
+                                    fetch_page(6, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter)
 
     # goods_spider = GoodsSpider('https://www.goat.com/sneakers/force-savage-pro-baseball-cleat-880144-410', 1, Queue(), crawl_counter)
     # goods_spider.start()
