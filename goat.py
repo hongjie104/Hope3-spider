@@ -153,6 +153,8 @@ class GoodsSpider(Thread):
             helper.log(e, platform)
             if error_counter < 3:
                 self.q.put(self.url)
+        finally:
+            helper.log('[INFO] %s is done' % self.url, platform)
 
 
 def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
@@ -209,6 +211,7 @@ def start():
     except:
         fetched_url_list = []
     key_list = [
+        'Hoodland',
         'Air Jordan 1',
         'jordan 1 retro',
         'jordan 1 mid',
@@ -658,7 +661,6 @@ def start():
         'Free RN 2017',
         'Free RN Distance',
         'Zoom Train',
-        'Hoodland',
     ]
     # 去重
     key_list = list(set(key_list))
@@ -669,6 +671,7 @@ def start():
     error_page_url_queue = Queue()
 
     for key in key_list:
+        helper.log('[INFO] now key = ' + key)
         # 先取男鞋 价格从低到高
         if fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
             # 先取男鞋 价格从高到低
