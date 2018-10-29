@@ -129,8 +129,10 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 	except:
 		response = None
 	if response and response.status_code == 200:
+		log('post url OK => ' + url, platform)
 		return response.text if returnText else PyQuery(response.text)
 	else:
+		log('post url not OK => ' + url, platform)
 		return None
 
 def lookUp(obj):
