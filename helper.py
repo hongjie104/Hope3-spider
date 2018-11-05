@@ -49,7 +49,7 @@ def log(content, platform):
 		mkDir(os.path.join('.', 'logs'))
 		log_path = os.path.join('.', 'logs', '%s-%s.log' % (today(), platform))
 		writeFile(content, log_path, 'a' if os.path.exists(log_path) else 'w')
-	print('[%s] => %s', (platform or 'None', content))
+	print('[%s] => %s' % (platform or 'None', content))
 
 # 开始下载图片
 def downloadImg(url, imgPath):
