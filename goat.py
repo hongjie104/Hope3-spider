@@ -671,6 +671,7 @@ def start():
     error_page_url_queue = Queue()
 
     for key in key_list:
+        key = key.replace('\n', '')
         helper.log('[INFO] now key = ' + key, platform)
         # 先取男鞋 价格从低到高
         if fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
