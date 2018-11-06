@@ -179,7 +179,7 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
         # 如果有问题的详情页数量超过了9，那就认为是网站的反爬虫机制启动了
         # 就停止爬虫，等几个小时候再启动
         if len(error_detail_url.items()) > 9:
-            helper.log('[info] return, len(error_detail_url.items()) = %d' % len(error_detail_url.items()))
+            helper.log('[info] return, len(error_detail_url.items()) = %d' % len(error_detail_url.items()), platform)
             return False
         queue_size = q.qsize()
         if queue_size > 0:

@@ -68,7 +68,7 @@ def downloadImg(url, imgPath):
 				print(e)
 				return -2
 			with open(imgPath, 'wb') as f:
-				for chunk in r.iter_content(chunk_size = 1024): 
+				for chunk in r.iter_content(chunk_size = 1024):
 					if chunk:
 						f.write(chunk)
 						f.flush()
