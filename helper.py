@@ -95,7 +95,7 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=F
 	global headers
 	response = None
 	try:
-		response = s.get(url, headers=myHeaders or headers, cookies=cookies, timeout=10)
+		response = s.get(url, headers=myHeaders or headers, cookies=cookies, timeout=30)
 	except Exception as err:
 		log('get url error!!! repeat again!!!', platform)
 		log(err, platform)
@@ -125,7 +125,7 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 	global headers
 	response = None
 	try:
-		response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data)
+		response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data, timeout=30)
 	except:
 		response = None
 	if response and response.status_code == 200:
@@ -197,3 +197,9 @@ def runCmd(cmd, logfile='./aria2c.log', timeout=1200):
 	except OSError:
 		pass
 	return out
+
+def delRepeat(list):
+	for x in list:
+		while list.count(x)>1:
+			del list[list.index(x)]
+	return list

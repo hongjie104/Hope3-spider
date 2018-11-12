@@ -56,7 +56,9 @@ def fetch_page_json(gender, sort_by, query, page = 1):
         'Referer': 'https://www.goat.com/search?category=%s&query=%s&sortBy=%s' % (category, query, sort_by),
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36 OPR/55.0.2994.61'
     }, returnText=True, platform=platform)
-    return json.loads(html)
+    if html:
+        return json.loads(html)
+    return None
 
 
 class PageSpider(Thread):
@@ -159,6 +161,11 @@ class GoodsSpider(Thread):
 
 def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
     page_json = fetch_page_json(gender, sort_by, query)
+    while not page_json:
+        # 如果page_json获取失败，就等一会再获取
+        time.sleep(3)
+        page_json = fetch_page_json(gender, sort_by, query)
+
     total_page = page_json.get('nbPages', 0) + 1
     page_thread_list = []
     page = 1
@@ -1210,7 +1217,8 @@ def start():
         'LUNARTEMPO',
     ]
     # 去重
-    key_list = list(set(key_list))
+    # key_list = list(set(key_list))
+    key_list = helper.delRepeat(key_list)
     crawl_counter = mongo.get_crawl_counter(platform)
     # 创建一个队列用来保存进程获取到的数据
     q = Queue()
