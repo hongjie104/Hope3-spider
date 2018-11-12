@@ -1231,12 +1231,12 @@ def start():
         # 先取男鞋 价格从低到高
         # if fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
         #     helper.log('[INFO] => fetch_page is done, 1, PRICE_LOW_HIGH', platform)
-            # # 先取男鞋 价格从高到低
-            # if fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
-            #     helper.log('[INFO] => fetch_page is done, 1, PRICE_HIGH_LOW', platform)
-        # 先取女鞋 价格从低到高
-        if fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
-            helper.log('[INFO] => fetch_page is done, 2, PRICE_LOW_HIGH', platform)
+        # 先取男鞋 价格从高到低
+        if fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+            helper.log('[INFO] => fetch_page is done, 1, PRICE_HIGH_LOW', platform)
+        # # 先取女鞋 价格从低到高
+        # if fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+        #     helper.log('[INFO] => fetch_page is done, 2, PRICE_LOW_HIGH', platform)
             #         # 先取女鞋 价格从高到低
             #         if fetch_page(2, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
             #             helper.log('[INFO] => fetch_page is done, 2, PRICE_HIGH_LOW', platform)
