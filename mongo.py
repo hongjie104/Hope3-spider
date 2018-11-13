@@ -93,6 +93,7 @@ def get_crawl_counter(platform):
 
 
 def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_value, platform, platform_id, crawl_counter, color_name='', img_downloaded=True):
+    name = name.upper()
     global pending_goods_collection
     pending_goods = pending_goods_collection.find_one({'url': url})
     if pending_goods:
