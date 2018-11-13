@@ -18,6 +18,8 @@ from pyquery import PyQuery
 
 error_detail_url = {}
 
+platform = 'stockx'
+
 
 class PageSpider(Thread):
     def __init__(self, url, q, error_page_url_queue):
@@ -36,7 +38,7 @@ class PageSpider(Thread):
             for p in products:
                 self.q.put('https://stockx.com/%s' % p.get('urlKey'))
         except:
-            helper.log('[ERROR] => ' + self.url, 'stockx')
+            helper.log('[ERROR] => ' + self.url, platform)
             self.error_page_url_queue.put(self.url)
 
 
@@ -90,32 +92,35 @@ class GoodsSpider(Thread):
                         'price': float(div_list[i + 1].text.replace('US$', '').replace(',', '').strip()),
                         'isInStock': True
                     })
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, 'stockx', '5bace180c7e854cab4dbcc83', self.crawl_counter)
             # 下载图片
-            img_url = ''
-            img_list = pq('div.image-container img')
-            if img_list:
-                img_url = img_list[-1].get('src')
-            else:
-                img_url = pq('div.product-media img').attr('src')
-            img_url_list = img_url.split('?')
-            img_url_query_list = img_url_list[1].split('&')
-            for i in range(0, len(img_url_query_list)):
-                if img_url_query_list[i].split('=')[0] == 'w':
-                    img_url_query_list[i] = 'w=600'
-                elif  img_url_query_list[i].split('=')[0] == 'h':
-                    img_url_query_list[i] = 'h=600'
-            img_url = img_url_list[0] + '?' + '&'.join(img_url_query_list)
-            # print(img_url)
-            result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'stockx', '%s.jpg' % number))
-            if result == 1:
-                # 上传到七牛
-                qiniuUploader.upload_2_qiniu('stockx', '%s.jpg' % number, './imgs/stockx/%s.jpg' % number)
+            img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+            if not img_downloaded:
+                img_url = ''
+                img_list = pq('div.image-container img')
+                if img_list:
+                    img_url = img_list[-1].get('src')
+                else:
+                    img_url = pq('div.product-media img').attr('src')
+                img_url_list = img_url.split('?')
+                img_url_query_list = img_url_list[1].split('&')
+                for i in range(0, len(img_url_query_list)):
+                    if img_url_query_list[i].split('=')[0] == 'w':
+                        img_url_query_list[i] = 'w=600'
+                    elif  img_url_query_list[i].split('=')[0] == 'h':
+                        img_url_query_list[i] = 'h=600'
+                img_url = img_url_list[0] + '?' + '&'.join(img_url_query_list)
+                # print(img_url)
+                result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
+                if result == 1:
+                    # 上传到七牛
+                    qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
+                    img_downloaded = True
+            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, platform, '5bace180c7e854cab4dbcc83', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
             error_detail_url[self.url] = error_counter + 1
-            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), 'stockx')
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), platform)
             if error_counter < 3:
                 self.q.put(self.url)
 
@@ -149,7 +154,7 @@ def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
 
 
 def start():
-    crawl_counter = mongo.get_crawl_counter('stockx')
+    crawl_counter = mongo.get_crawl_counter(platform)
     # 创建一个队列用来保存进程获取到的数据
     q = Queue()
     # 有错误的页面链接
@@ -169,4 +174,4 @@ def start():
 
         fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
 
-    helper.log('done', 'stockx')
+    helper.log('done', platform)
