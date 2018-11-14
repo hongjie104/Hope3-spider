@@ -32,11 +32,11 @@ class PageSpider(Thread):
 
     def run(self):
         try:
-            json_txt = helper.get(self.url, returnText=True)
+            json_txt = helper.get(self.url, returnText=True, platform=platform)
             json_data = json.loads(json_txt)
-            products = json_data.get('Products')
-            for p in products:
-                self.q.put('https://stockx.com/%s' % p.get('urlKey'))
+            goods_list = json_data.get('hits')
+            for goods in goods_list:
+                self.q.put('https://stockx.com/%s' % goods.get('url'))
         except:
             helper.log('[ERROR] => ' + self.url, platform)
             self.error_page_url_queue.put(self.url)
@@ -57,7 +57,7 @@ class GoodsSpider(Thread):
         '''
         time.sleep(2)
         try:
-            pq = helper.get(self.url)
+            pq = helper.get(self.url, platform=platform)
             # 款型名称
             name = pq('h1.name').text()
             number = ''
@@ -109,7 +109,6 @@ class GoodsSpider(Thread):
                     elif  img_url_query_list[i].split('=')[0] == 'h':
                         img_url_query_list[i] = 'h=600'
                 img_url = img_url_list[0] + '?' + '&'.join(img_url_query_list)
-                # print(img_url)
                 result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
                 if result == 1:
                     # 上传到七牛
@@ -159,12 +158,23 @@ def start():
     q = Queue()
     # 有错误的页面链接
     error_page_url_queue = Queue()
-    url = 'https://stockx.com/api/browse?order=DESC&page=1&productCategory=sneakers&sort=release_date'
-    json_txt = helper.get(url, returnText=True)
-    json_data = json.loads(json_txt)
-    pagination = json_data.get('Pagination')
-    total_page = pagination.get('lastPage')
-    fetch_page(['https://stockx.com/api/browse?order=DESC&page=%d&productCategory=sneakers&sort=release_date' % page for page in range(1, total_page + 1)], q, error_page_url_queue, crawl_counter)
+    # url = 'https://stockx.com/api/browse?order=DESC&page=1&productCategory=sneakers&sort=release_date'
+    # json_txt = helper.get(url, returnText=True)
+    # json_data = json.loads(json_txt)
+    # pagination = json_data.get('Pagination')
+    # total_page = pagination.get('lastPage')
+    # fetch_page(['https://stockx.com/api/browse?order=DESC&page=%d&productCategory=sneakers&sort=release_date' % page for page in range(1, total_page + 1)], q, error_page_url_queue, crawl_counter)
+
+    f = open('./keyword.json')
+    txt = f.read()
+    f.close()
+    keywords = json.loads(txt)
+    for keywrod in keywords:
+        url = 'https://stockx.com/api/search?query=%s&page=0&currency=USD' % keywrod
+        json_txt = helper.get(url, returnText=True, platform=platform)
+        json_data = json.loads(json_txt)
+        total_page = json_data.get('nbPages')
+        fetch_page(['https://stockx.com/api/search?query=%s&page=%d&currency=USD' % (keywrod, page) for page in range(0, total_page)], q, error_page_url_queue, crawl_counter)
 
     # 处理出错的链接
     while not error_page_url_queue.empty():
