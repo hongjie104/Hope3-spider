@@ -97,9 +97,10 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=F
 	try:
 		response = s.get(url, headers=myHeaders or headers, cookies=cookies, timeout=30)
 	except Exception as err:
-		log('get url error!!! repeat again!!!', platform)
+		# log('get url error!!! repeat again!!!', platform)
 		log(err, platform)
-		return get(url, cookies, myHeaders, sleep or 3, returnText)
+		# return get(url, cookies, myHeaders, sleep or 3, returnText)
+		return None
 	if response.status_code == 200:
 		pq = None
 		try:
