@@ -74,48 +74,49 @@ class GoodsSpider(Thread):
                 # elif key == 'Retail Price':
                 #     price = div.find('span')[-1].text.replace('US$', '').strip()
                 #     price = float(price)
-            # 找出所有尺寸
-            size_price_arr = []
-            select_options = pq('div.select-options')
-            if select_options and len(select_options) > 0:
-                div_list = PyQuery(select_options[0]).find('div.inset div')
-                for i in range(0, len(div_list), 2):
-                    if div_list[i].text == 'All':
-                        continue
-                    if div_list[i + 1].text == 'Bid':
-                        size_price_arr.append({
-                            'size': div_list[i].text,
-                            'price': 0.0,
-                            'isInStock': False
-                        })
-                    else:
-                        size_price_arr.append({
-                            'size': div_list[i].text,
-                            'price': float(div_list[i + 1].text.replace('US$', '').replace(',', '').strip()),
-                            'isInStock': True
-                        })
-                # 下载图片
-                img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
-                if not img_downloaded:
-                    img_url = ''
-                    img_list = pq('div.image-container img')
-                    if img_list:
-                        img_url = img_list[-1].get('src')
-                    else:
-                        img_url = pq('div.product-media img').attr('src')
-                    img_url_list = img_url.split('?')
-                    img_url_query_list = img_url_list[1].split('&')
-                    for i in range(0, len(img_url_query_list)):
-                        if img_url_query_list[i].split('=')[0] == 'w':
-                            img_url_query_list[i] = 'w=600'
-                        elif  img_url_query_list[i].split('=')[0] == 'h':
-                            img_url_query_list[i] = 'h=600'
-                    img_url = img_url_list[0] + '?' + '&'.join(img_url_query_list)
-                    result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
-                    if result == 1:
-                        # 上传到七牛
-                        qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
-                        img_downloaded = True
+            if number != '':
+                # 找出所有尺寸
+                size_price_arr = []
+                select_options = pq('div.select-options')
+                if select_options and len(select_options) > 0:
+                    div_list = PyQuery(select_options[0]).find('div.inset div')
+                    for i in range(0, len(div_list), 2):
+                        if div_list[i].text == 'All':
+                            continue
+                        if div_list[i + 1].text == 'Bid':
+                            size_price_arr.append({
+                                'size': div_list[i].text,
+                                'price': 0.0,
+                                'isInStock': False
+                            })
+                        else:
+                            size_price_arr.append({
+                                'size': div_list[i].text,
+                                'price': float(div_list[i + 1].text.replace('US$', '').replace(',', '').strip()),
+                                'isInStock': True
+                            })
+                    # 下载图片
+                    img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+                    if not img_downloaded:
+                        img_url = ''
+                        img_list = pq('div.image-container img')
+                        if img_list:
+                            img_url = img_list[-1].get('src')
+                        else:
+                            img_url = pq('div.product-media img').attr('src')
+                        img_url_list = img_url.split('?')
+                        img_url_query_list = img_url_list[1].split('&')
+                        for i in range(0, len(img_url_query_list)):
+                            if img_url_query_list[i].split('=')[0] == 'w':
+                                img_url_query_list[i] = 'w=600'
+                            elif  img_url_query_list[i].split('=')[0] == 'h':
+                                img_url_query_list[i] = 'h=600'
+                        img_url = img_url_list[0] + '?' + '&'.join(img_url_query_list)
+                        result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
+                        if result == 1:
+                            # 上传到七牛
+                            qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
+                            img_downloaded = True
             else:
                 # https://stockx.com/api/products/adidas-human-race-nmd-pharrell-cream?includes=market,360&currency=USD
                 size_price_url = 'https://stockx.com/api/products%s?includes=market,360&currency=USD' % self.url.split('stockx.com')[1]
@@ -133,23 +134,23 @@ class GoodsSpider(Thread):
                 number = json_data.get('Product').get('styleId')
                 color_value = json_data.get('Product').get('colorway')
                 name = json_data.get('Product').get('title')
-                print('number = ', number)
-                print('color_value = ', color_value)
-                print('name = ', name)
-
-                # 下载图片
-                img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
-                if not img_downloaded:
-                    img_url_list = json_data.get('Product').get('media').get('360')
-                    if len(img_url_list) > 0:
-                        img_url = img_url_list[0]
-                    else:
-                        img_url = json_data.get('Product').get('media').get('imageUrl')
-                    img_path = os.path.join('.', 'imgs', platform, '%s.jpg' % number)
-                    helper.downloadImg(img_url, img_path)
-                    # 上传到七牛
-                    qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, img_path)
-                    img_downloaded = True
+                # print('number = ', number)
+                # print('color_value = ', color_value)
+                # print('name = ', name)
+                if number != '':
+                    # 下载图片
+                    img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+                    if not img_downloaded:
+                        img_url_list = json_data.get('Product').get('media').get('360')
+                        if len(img_url_list) > 0:
+                            img_url = img_url_list[0]
+                        else:
+                            img_url = json_data.get('Product').get('media').get('imageUrl')
+                        img_path = os.path.join('.', 'imgs', platform, '%s.jpg' % number)
+                        helper.downloadImg(img_url, img_path)
+                        # 上传到七牛
+                        qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, img_path)
+                        img_downloaded = True
             if number != '':
                 mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, platform, '5bace180c7e854cab4dbcc83', self.crawl_counter, img_downloaded=img_downloaded)
             # print(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, platform, '5bace180c7e854cab4dbcc83', self.crawl_counter, img_downloaded)
