@@ -78,7 +78,7 @@ class GoodsSpider(Thread):
             size_price_arr = []
             select_options = pq('div.select-options')
             if select_options and len(select_options) > 0:
-                div_list = PyQuery([0]).find('div.inset div')
+                div_list = PyQuery(select_options[0]).find('div.inset div')
                 for i in range(0, len(div_list), 2):
                     if div_list[i].text == 'All':
                         continue
@@ -133,18 +133,26 @@ class GoodsSpider(Thread):
                 number = json_data.get('Product').get('styleId')
                 color_value = json_data.get('Product').get('colorway')
                 name = json_data.get('Product').get('title')
+                print('number = ', number)
+                print('color_value = ', color_value)
+                print('name = ', name)
 
                 # 下载图片
                 img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
-                if not img_downloaded or True:
-                    img_url = json_data.get('Product').get('media').get('360')[0]
-                    result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
-                    if result == 1:
-                        # 上传到七牛
-                        qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
-                        img_downloaded = True
+                if not img_downloaded:
+                    img_url_list = json_data.get('Product').get('media').get('360')
+                    if len(img_url_list) > 0:
+                        img_url = img_url_list[0]
+                    else:
+                        img_url = json_data.get('Product').get('media').get('imageUrl')
+                    img_path = os.path.join('.', 'imgs', platform, '%s.jpg' % number)
+                    helper.downloadImg(img_url, img_path)
+                    # 上传到七牛
+                    qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, img_path)
+                    img_downloaded = True
+            if number != '':
+                mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, platform, '5bace180c7e854cab4dbcc83', self.crawl_counter, img_downloaded=img_downloaded)
             # print(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, platform, '5bace180c7e854cab4dbcc83', self.crawl_counter, img_downloaded)
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], 0, color_value, platform, '5bace180c7e854cab4dbcc83', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
@@ -215,7 +223,7 @@ def start():
         fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
 
 
-    # goods_spider = GoodsSpider('https://stockx.com/adidas-yeezy-boost-350-v2-butter', Queue(), 1)
+    # goods_spider = GoodsSpider('https://stockx.com/adidas-sl-loop-wish-independent-currency', Queue(), 1)
     # goods_spider.start()
     # goods_spider.join()
 
