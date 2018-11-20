@@ -14,6 +14,8 @@ try:
 except ImportError:
     from Queue import Queue
 from pyquery import PyQuery
+import urllib
+import requests
 
 
 error_detail_url = {}
@@ -36,7 +38,8 @@ class PageSpider(Thread):
             json_data = json.loads(json_txt)
             goods_list = json_data.get('hits')
             for goods in goods_list:
-                self.q.put('https://stockx.com/%s' % goods.get('url'))
+                if goods.get('product_category') == 'sneakers':
+                    self.q.put('https://stockx.com/%s' % goods.get('url'))
         except:
             helper.log('[ERROR] => ' + self.url, platform)
             self.error_page_url_queue.put(self.url)
@@ -199,20 +202,20 @@ def start():
     txt = f.read()
     f.close()
     keywords = json.loads(txt)
-    for keywrod in keywords:
-        url = 'https://stockx.com/api/search?query=%s&page=0&currency=USD' % keywrod
+    for keyword in keywords:
+        url = 'https://stockx.com/api/search?query=%s&page=0&currency=USD' % keyword
         json_txt = helper.get(url, returnText=True, platform=platform)
         json_data = json.loads(json_txt)
         total_page = json_data.get('nbPages')
-        fetch_page(['https://stockx.com/api/search?query=%s&page=%d&currency=USD' % (keywrod, page) for page in range(0, total_page)], q, error_page_url_queue, crawl_counter)
+        fetch_page(['https://stockx.com/api/search?query=%s&page=%d&currency=USD' % (keyword, page) for page in range(0, total_page)], q, error_page_url_queue, crawl_counter)
 
-    # 处理出错的链接
-    while not error_page_url_queue.empty():
-        error_page_url_list = []
-        while not error_page_url_queue.empty():
-            error_page_url_list.append(error_page_url_queue.get())
+    # # 处理出错的链接
+    # while not error_page_url_queue.empty():
+    #     error_page_url_list = []
+    #     while not error_page_url_queue.empty():
+    #         error_page_url_list.append(error_page_url_queue.get())
 
-        fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
+    #     fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
 
 
     # goods_spider = GoodsSpider('https://stockx.com/adidas-yeezy-boost-350-v2-butter', Queue(), 1)

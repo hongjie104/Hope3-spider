@@ -127,12 +127,14 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 	response = None
 	try:
 		response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data, timeout=30)
+		# response = s.post('http://httpbin.org/post', headers=myHeaders or headers, cookies=cookies, data=data)
 	except:
 		response = None
 	if response and response.status_code == 200:
 		log('post url OK => ' + url, platform)
 		return response.text if returnText else PyQuery(response.text)
 	else:
+		print('aaaa', response.status_code)
 		log('post url not OK => ' + url, platform)
 		return None
 
