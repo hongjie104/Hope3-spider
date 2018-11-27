@@ -22,26 +22,26 @@ error_detail_url = {}
 platform = 'stockx'
 
 
-class PageSpider(Thread):
-    def __init__(self, url, q, error_page_url_queue):
-        # 重写写父类的__init__方法
-        super(PageSpider, self).__init__()
-        self.url = url
-        self.q = q
-        self.error_page_url_queue = error_page_url_queue
+# class PageSpider(Thread):
+#     def __init__(self, url, q, error_page_url_queue):
+#         # 重写写父类的__init__方法
+#         super(PageSpider, self).__init__()
+#         self.url = url
+#         self.q = q
+#         self.error_page_url_queue = error_page_url_queue
 
 
-    def run(self):
-        try:
-            json_txt = helper.get(self.url, returnText=True, platform=platform)
-            json_data = json.loads(json_txt)
-            goods_list = json_data.get('hits')
-            for goods in goods_list:
-                if goods.get('product_category') == 'sneakers':
-                    self.q.put('https://stockx.com/%s' % goods.get('url'))
-        except:
-            helper.log('[ERROR] => ' + self.url, platform)
-            self.error_page_url_queue.put(self.url)
+#     def run(self):
+#         try:
+#             json_txt = helper.get(self.url, returnText=True, platform=platform)
+#             json_data = json.loads(json_txt)
+#             goods_list = json_data.get('hits')
+#             for goods in goods_list:
+#                 if goods.get('product_category') == 'sneakers':
+#                     self.q.put('https://stockx.com/%s' % goods.get('url'))
+#         except:
+#             helper.log('[ERROR] => ' + self.url, platform)
+#             self.error_page_url_queue.put(self.url)
 
 
 class GoodsSpider(Thread):
@@ -242,6 +242,7 @@ def start():
         page = 0
         total_page = 1
         while page < total_page:
+            time.sleep(2)
             data = {"params":"query=" + key.replace(' ', '%20') + "&facets=*&filters=product_category%3A%22sneakers%22&page=" + str(page)}
             headers = {
                 'accept': 'application/json',
@@ -257,6 +258,10 @@ def start():
             html = helper.post('https://xw7sbct9v6-2.algolianet.com/1/indexes/products/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.30.0&x-algolia-application-id=XW7SBCT9V6&x-algolia-api-key=6bfb5abee4dcd8cea8f0ca1ca085c2b3', None, headers, returnText=True, platform=platform, json=data, timeout=60)
             json_data = json.loads(html)
             total_page = json_data.get('nbPages', 1)
+            nb_hits = json_data.get('nbHits', 0)
+            if nb_hits < 1:
+                helper.log('no hit key = ' + key, platform)
+                break
             hits = json_data.get('hits')
             for hit in hits:
                 q.put('https://stockx.com/' + hit.get('url'))
