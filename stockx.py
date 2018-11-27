@@ -14,7 +14,6 @@ try:
 except ImportError:
     from Queue import Queue
 from pyquery import PyQuery
-import urllib
 import requests
 
 
@@ -121,6 +120,7 @@ class GoodsSpider(Thread):
                             qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
                             img_downloaded = True
             else:
+                size_price_arr = []
                 # https://stockx.com/api/products/adidas-human-race-nmd-pharrell-cream?includes=market,360&currency=USD
                 size_price_url = 'https://stockx.com/api/products%s?includes=market,360&currency=USD' % self.url.split('stockx.com')[1]
                 json_txt = helper.get(size_price_url, returnText=True)
@@ -166,38 +166,38 @@ class GoodsSpider(Thread):
                 self.q.put(self.url)
 
 
-def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
-    page_thread_list = []
-    # 构造所有url
-    for url in url_list:
-        # 创建并启动线程
-        time.sleep(1.2)
-        page_spider = PageSpider(url, q, error_page_url_queue)
-        page_spider.start()
-        page_thread_list.append(page_spider)
-    for t in page_thread_list:
-        t.join()
+# def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
+#     page_thread_list = []
+#     # 构造所有url
+#     for url in url_list:
+#         # 创建并启动线程
+#         time.sleep(1.2)
+#         page_spider = PageSpider(url, q, error_page_url_queue)
+#         page_spider.start()
+#         page_thread_list.append(page_spider)
+#     for t in page_thread_list:
+#         t.join()
 
-    goods_thread_list = []
-    while True:
-        queue_size = q.qsize()
-        if queue_size > 0:
-            # 每次启动5个抓取商品的线程
-            for i in range(5 if queue_size > 5 else queue_size):
-                goods_spider = GoodsSpider(q.get(), q, crawl_counter)
-                goods_spider.start()
-                goods_thread_list.append(goods_spider)
-            for t in goods_thread_list:
-                t.join()
-            goods_thread_list = []
-        else:
-            break
+#     goods_thread_list = []
+#     while True:
+#         queue_size = q.qsize()
+#         if queue_size > 0:
+#             # 每次启动5个抓取商品的线程
+#             for i in range(5 if queue_size > 5 else queue_size):
+#                 goods_spider = GoodsSpider(q.get(), q, crawl_counter)
+#                 goods_spider.start()
+#                 goods_thread_list.append(goods_spider)
+#             for t in goods_thread_list:
+#                 t.join()
+#             goods_thread_list = []
+#         else:
+#             break
 
 
 def start():
-    # crawl_counter = mongo.get_crawl_counter(platform)
-    # # 创建一个队列用来保存进程获取到的数据
-    # q = Queue()
+    crawl_counter = mongo.get_crawl_counter(platform)
+    # 创建一个队列用来保存进程获取到的数据
+    q = Queue()
     # # 有错误的页面链接
     # error_page_url_queue = Queue()
     # # url = 'https://stockx.com/api/browse?order=DESC&page=1&productCategory=sneakers&sort=release_date'
@@ -231,21 +231,50 @@ def start():
     # # goods_spider.start()
     # # goods_spider.join()
 
-    # helper.log('done', platform)
+    f = open('./keyword.json')
+    txt = f.read()
+    f.close()
+    key_list = json.loads(txt)
+    # 去重
+    key_list = helper.delRepeat(key_list)
+    for key in key_list:
+        helper.log('key = ' + key, platform)
+        page = 0
+        total_page = 1
+        while page < total_page:
+            data = {"params":"query=" + key.replace(' ', '%20') + "&facets=*&filters=product_category%3A%22sneakers%22&page=" + str(page)}
+            headers = {
+                'accept': 'application/json',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Connection': 'keep-alive',
+                'content-type': 'application/x-www-form-urlencoded',
+                'Host': 'xw7sbct9v6-2.algolianet.com',
+                'Origin': 'https://stockx.com',
+                'Referer': 'https://stockx.com/',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36 OPR/56.0.3051.104',
+            }
+            html = helper.post('https://xw7sbct9v6-2.algolianet.com/1/indexes/products/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.30.0&x-algolia-application-id=XW7SBCT9V6&x-algolia-api-key=6bfb5abee4dcd8cea8f0ca1ca085c2b3', None, headers, returnText=True, platform=platform, json=data, timeout=60)
+            json_data = json.loads(html)
+            total_page = json_data.get('nbPages', 1)
+            hits = json_data.get('hits')
+            for hit in hits:
+                q.put('https://stockx.com/' + hit.get('url'))
+            page += 1
 
-    data = {"params":"query=nik&facets=*&filters="}
-    # data = {"params":"query=nike&facets=*&filters=product_category%3A%22sneakers%22&page=0"}
-    headers = {
-        'accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Connection': 'keep-alive',
-        'Content-Length': '40',
-        'content-type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://stockx.com',
-        'Referer': 'https://stockx.com/',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36 OPR/56.0.3051.104',
-        'Host': 'xw7sbct9v6-2.algolianet.com',
-    }
-    html = helper.post('https://xw7sbct9v6-2.algolianet.com/1/indexes/products/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.30.0&x-algolia-application-id=XW7SBCT9V6&x-algolia-api-key=6bfb5abee4dcd8cea8f0ca1ca085c2b3', None, headers, returnText=True, platform=platform, json=data, timeout=60)
-    print(html)
+        while True:
+            queue_size = q.qsize()
+            if queue_size > 0:
+                goods_thread_list = []
+                # 每次启动5个抓取商品的线程
+                for i in range(5 if queue_size > 5 else queue_size):
+                    goods_spider = GoodsSpider(q.get(), q, crawl_counter)
+                    goods_spider.start()
+                    goods_thread_list.append(goods_spider)
+                for t in goods_thread_list:
+                    t.join()
+                goods_thread_list = []
+            else:
+                break
+
+    helper.log('done', platform)

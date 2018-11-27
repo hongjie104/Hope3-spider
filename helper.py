@@ -129,7 +129,7 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 		if data:
 			response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data, timeout=timeout)
 		else:
-			response = s.post(url, headers=myHeaders or headers, cookies=cookies, json=data, timeout=timeout)
+			response = s.post(url, headers=myHeaders or headers, cookies=cookies, json=json, timeout=timeout)
 		# response = s.post('http://httpbin.org/post', headers=myHeaders or headers, cookies=cookies, data=data)
 	except Exception as e:
 		print(e)
