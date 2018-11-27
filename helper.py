@@ -115,7 +115,7 @@ def get(url, cookies={}, myHeaders=None, sleep=0, returnText=False, withCookie=F
 		return None
 
 
-def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, cookies={}, sleep=0, returnText=False, platform=None):
+def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, cookies={}, sleep=0, returnText=False, platform=None, json=None, timeout=30):
 	'''post'''
 	s = requests.Session()
 	s.mount('http://', HTTPAdapter(max_retries=10))
@@ -126,17 +126,21 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 	global headers
 	response = None
 	try:
-		response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data, timeout=30)
+		if data:
+			response = s.post(url, headers=myHeaders or headers, cookies=cookies, data=data, timeout=timeout)
+		else:
+			response = s.post(url, headers=myHeaders or headers, cookies=cookies, json=data, timeout=timeout)
 		# response = s.post('http://httpbin.org/post', headers=myHeaders or headers, cookies=cookies, data=data)
-	except:
+	except Exception as e:
+		print(e)
 		response = None
-	if response and response.status_code == 200:
-		log('post url OK => ' + url, platform)
-		return response.text if returnText else PyQuery(response.text)
-	else:
-		print('aaaa', response.status_code)
-		log('post url not OK => ' + url, platform)
-		return None
+	if response:
+		log('post status => ', response.status_code)
+		if response.status_code == 200:
+			log('post url OK => ' + url, platform)
+			return response.text if returnText else PyQuery(response.text)
+	log('post url not OK => ' + url, platform)
+	return None
 
 def lookUp(obj):
 	print(inspect.getmembers(obj, inspect.ismethod))

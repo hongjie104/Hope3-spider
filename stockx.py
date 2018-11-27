@@ -195,40 +195,57 @@ def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
 
 
 def start():
-    crawl_counter = mongo.get_crawl_counter(platform)
-    # 创建一个队列用来保存进程获取到的数据
-    q = Queue()
-    # 有错误的页面链接
-    error_page_url_queue = Queue()
-    # url = 'https://stockx.com/api/browse?order=DESC&page=1&productCategory=sneakers&sort=release_date'
-    # json_txt = helper.get(url, returnText=True)
-    # json_data = json.loads(json_txt)
-    # pagination = json_data.get('Pagination')
-    # total_page = pagination.get('lastPage')
-    # fetch_page(['https://stockx.com/api/browse?order=DESC&page=%d&productCategory=sneakers&sort=release_date' % page for page in range(1, total_page + 1)], q, error_page_url_queue, crawl_counter)
+    # crawl_counter = mongo.get_crawl_counter(platform)
+    # # 创建一个队列用来保存进程获取到的数据
+    # q = Queue()
+    # # 有错误的页面链接
+    # error_page_url_queue = Queue()
+    # # url = 'https://stockx.com/api/browse?order=DESC&page=1&productCategory=sneakers&sort=release_date'
+    # # json_txt = helper.get(url, returnText=True)
+    # # json_data = json.loads(json_txt)
+    # # pagination = json_data.get('Pagination')
+    # # total_page = pagination.get('lastPage')
+    # # fetch_page(['https://stockx.com/api/browse?order=DESC&page=%d&productCategory=sneakers&sort=release_date' % page for page in range(1, total_page + 1)], q, error_page_url_queue, crawl_counter)
 
-    f = open('./keyword.json')
-    txt = f.read()
-    f.close()
-    keywords = json.loads(txt)
-    for keyword in keywords:
-        url = 'https://stockx.com/api/search?query=%s&page=0&currency=USD' % keyword
-        json_txt = helper.get(url, returnText=True, platform=platform)
-        json_data = json.loads(json_txt)
-        total_page = json_data.get('nbPages')
-        fetch_page(['https://stockx.com/api/search?query=%s&page=%d&currency=USD' % (keyword, page) for page in range(0, total_page)], q, error_page_url_queue, crawl_counter)
+    # f = open('./keyword.json')
+    # txt = f.read()
+    # f.close()
+    # keywords = json.loads(txt)
+    # for keyword in keywords:
+    #     url = 'https://stockx.com/api/search?query=%s&page=0&currency=USD' % keyword
+    #     json_txt = helper.get(url, returnText=True, platform=platform)
+    #     json_data = json.loads(json_txt)
+    #     total_page = json_data.get('nbPages')
+    #     fetch_page(['https://stockx.com/api/search?query=%s&page=%d&currency=USD' % (keyword, page) for page in range(0, total_page)], q, error_page_url_queue, crawl_counter)
 
-    # # 处理出错的链接
-    # while not error_page_url_queue.empty():
-    #     error_page_url_list = []
-    #     while not error_page_url_queue.empty():
-    #         error_page_url_list.append(error_page_url_queue.get())
+    # # # 处理出错的链接
+    # # while not error_page_url_queue.empty():
+    # #     error_page_url_list = []
+    # #     while not error_page_url_queue.empty():
+    # #         error_page_url_list.append(error_page_url_queue.get())
 
-    #     fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
+    # #     fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
 
 
-    # goods_spider = GoodsSpider('https://stockx.com/adidas-sl-loop-wish-independent-currency', Queue(), 1)
-    # goods_spider.start()
-    # goods_spider.join()
+    # # goods_spider = GoodsSpider('https://stockx.com/adidas-sl-loop-wish-independent-currency', Queue(), 1)
+    # # goods_spider.start()
+    # # goods_spider.join()
 
-    helper.log('done', platform)
+    # helper.log('done', platform)
+
+    data = {"params":"query=nik&facets=*&filters="}
+    # data = {"params":"query=nike&facets=*&filters=product_category%3A%22sneakers%22&page=0"}
+    headers = {
+        'accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive',
+        'Content-Length': '40',
+        'content-type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://stockx.com',
+        'Referer': 'https://stockx.com/',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36 OPR/56.0.3051.104',
+        'Host': 'xw7sbct9v6-2.algolianet.com',
+    }
+    html = helper.post('https://xw7sbct9v6-2.algolianet.com/1/indexes/products/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.30.0&x-algolia-application-id=XW7SBCT9V6&x-algolia-api-key=6bfb5abee4dcd8cea8f0ca1ca085c2b3', None, headers, returnText=True, platform=platform, json=data, timeout=60)
+    print(html)
