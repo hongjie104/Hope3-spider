@@ -243,7 +243,7 @@ def start():
         total_page = 1
         while page < total_page:
             time.sleep(2)
-            data = {"params":"query=" + key.replace(' ', '%20') + "&facets=*&filters=product_category%3A%22sneakers%22&page=" + str(page)}
+            data = {"params":"query=" + key.replace(' ', '%20').replace('/', '%2F') + "&facets=*&filters=product_category%3A%22sneakers%22&page=" + str(page)}
             headers = {
                 'accept': 'application/json',
                 'Accept-Encoding': 'gzip, deflate, br',

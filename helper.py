@@ -135,7 +135,7 @@ def post(url, data={'imgContinue': 'Continue to image ... '}, myHeaders=None, co
 		print(e)
 		response = None
 	if response:
-		log('post status => ', response.status_code)
+		# log('post status => ', response.status_code)
 		if response.status_code == 200:
 			return response.text if returnText else PyQuery(response.text)
 	log('post url not OK => ' + url, platform)
