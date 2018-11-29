@@ -12,6 +12,8 @@ db = conn.Hope3
 identity_counter_collection = db.identitycounters
 pending_goods_collection = db.hope_pendinggoods
 goods_collection = db.hope_goods
+goods_color_collection = db.hope_goodscolors
+goods_type_collection = db.hope_goodstypes
 sku_history_collection = db.hope_sku_history
 # goods = db.goods
 # skus = db.skus
@@ -168,3 +170,23 @@ def insert_pending_goods(name, number, url, size_price_arr, imgs, gender, color_
         '__v': 0
     })
     return True
+
+
+def add_hot_platform_with_number(platform_id, number):
+    '''根据平台上的number去增加拥有这个number的配色的热度'''
+    platform_id = objectid.ObjectId(platform_id)
+    goods_color = goods_color_collection.find_one({'number': number}, {'goods_type_id': 1, 'hot': 1})
+    if goods_color:
+        hot_platform_list = goods_color.get('hot', [])
+        if platform_id not in hot_platform_list:
+            hot_platform_list.append(platform_id)
+            goods_color_collection.update({"_id": goods_color.get('_id')}, {'$set': {'hot': hot_platform_list, 'hot_degree': len(hot_platform_list)}})
+            goods_type_id = goods_color.get('goods_type_id')
+            goods_type_collection.update({'_id': goods_type_id}, {'$set': {'is_hot': True}})
+        return True
+    # 再去看看penging里找找看
+    pending_goods = pending_goods_collection.find_one({'number': number, 'platform_id': platform_id}, {'name': 1})
+    if pending_goods:
+        pending_goods_collection.update({'_id': pending_goods.get('_id')}, {'$set': {'priority': 100}})
+        return True
+    return False
