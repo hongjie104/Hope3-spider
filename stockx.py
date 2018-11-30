@@ -284,20 +284,55 @@ def start_spider():
 
 
 def start_hot():
-    page = 1
-    total_page = 1
-    while page <= total_page:
-        url = 'https://stockx.com/api/browse?_tags=one%2Cair%20jordan&productCategory=sneakers&page=' + str(page)
-        html = helper.get(url, returnText=True)
-        json_data = json.loads(html)
-        pagination = json_data.get('Pagination')
-        total_page = pagination.get('lastPage')
+    url_list = [
+        'https://stockx.com/api/browse?_tags=nine%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=ten%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=eleven%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twelve%2Cair%20jordan&currency=AUD&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=thirteen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=fourteen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=thirty-one%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=other%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=spizike%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=foamposite%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=kd%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=kobe%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=lebron%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=air%20force%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=air%20max%2Cnike&productCategory=sneakers&page=',
+        'Https://stockx.com/api/browse?_tags=nike%20basketball%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=nike%20sb%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=nike%20other%2Cnike&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=yeezy%2Cadidas&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=ultra%20boost%2Cadidas&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=nmd%2Cadidas&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=iniki%2Cadidas&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=other%2Cadidas&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=asics&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=diadora&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=new%20balance&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=puma&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=under%20armour&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=vans&currency=CAD&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=converse&productCategory=sneakers&page=',
+    ]
+    for url in url_list:
+        page = 1
+        total_page = 1
+        while page <= total_page:
+            html = helper.get(url + str(page), returnText=True)
+            json_data = json.loads(html)
+            pagination = json_data.get('Pagination')
+            total_page = pagination.get('lastPage')
 
-        product_list = json_data.get('Products')
-        for product in product_list:
-            number = product.get('styleId')
-
-        page += 1
+            product_list = json_data.get('Products')
+            for product in product_list:
+                price = product.get('market').get('lowestAsk', None)
+                if price:
+                    number = product.get('styleId')
+                    if not mongo.add_hot_platform_with_number('5bace180c7e854cab4dbcc83', number):
+                        helper.log('not in db... url => ' + product.get('shortDescription') + ' number => ' + number, 'stockx')
+            page += 1
 
 
 def start(action):
