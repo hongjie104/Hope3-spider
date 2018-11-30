@@ -37,38 +37,40 @@ if __name__ == '__main__':
         helper.mkDir(os.path.join('.', 'imgs', dir_name))
     parser = argparse.ArgumentParser()
     parser.add_argument("target", help=','.join(WEB_DOMAIN))
+    parser.add_argument("action", help='common or hot')
     options = parser.parse_args()
 
     target = options.target
+    action = options.action
     if target not in WEB_DOMAIN:
         print('legal target: [%s] ' % ', '.join(WEB_DOMAIN))
     else:
         if target == 'eastbay':
-            eastbay.start()
+            eastbay.start(action)
         elif target == 'footlocker':
-            footlocker.start()
+            footlocker.start(action)
         elif target == 'jimmyjazz':
-            # jimmyjazz.start(crawl_counter)
+            # jimmyjazz.start(action)
             pass
         elif target == 'sneakersnstuff':
-            # sneakersnstuff.start(crawl_counter)
+            # sneakersnstuff.start(action)
             pass
         elif target == 'footaction':
-            # footaction.start(crawl_counter)
+            # footaction.start(action)
             pass
         elif target == 'finishline':
-            finishline.start()
+            finishline.start(action)
         elif target == 'champssports':
-            champssports.start()
+            champssports.start(action)
         elif target == 'stadiumgoods':
-            stadiumgoods.start()
+            stadiumgoods.start(action)
         elif target == 'flightclub':
-            flightclub.start()
+            flightclub.start(action)
         elif target == 'stockx':
-            stockx.start()
+            stockx.start(action)
         elif target == 'goat':
-            goat.start()
+            goat.start(action)
         elif target == 'kickz':
-            kickz.start()
+            kickz.start(action)
         elif target == 'nike':
-            nike.start()
+            nike.start(action)

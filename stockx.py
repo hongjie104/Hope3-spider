@@ -194,7 +194,7 @@ class GoodsSpider(Thread):
 #             break
 
 
-def start():
+def start_spider():
     crawl_counter = mongo.get_crawl_counter(platform)
     # 创建一个队列用来保存进程获取到的数据
     q = Queue()
@@ -281,5 +281,29 @@ def start():
                 goods_thread_list = []
             else:
                 break
+
+
+def start_hot():
+    page = 1
+    total_page = 1
+    while page <= total_page:
+        url = 'https://stockx.com/api/browse?_tags=one%2Cair%20jordan&productCategory=sneakers&page=' + str(page)
+        html = helper.get(url, returnText=True)
+        json_data = json.loads(html)
+        pagination = json_data.get('Pagination')
+        total_page = pagination.get('lastPage')
+
+        product_list = json_data.get('Products')
+        for product in product_list:
+            number = product.get('styleId')
+
+        page += 1
+
+
+def start(action):
+    if action == 'common':
+        start_spider()
+    elif action == 'hot':
+        start_hot()
 
     helper.log('done', platform)
