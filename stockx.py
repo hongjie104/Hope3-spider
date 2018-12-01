@@ -284,14 +284,42 @@ def start_spider():
 
 
 def start_hot():
+    crawl_counter = mongo.get_crawl_counter(platform)
+    # 创建一个队列用来保存进程获取到的数据
+    q = Queue()
     url_list = [
+        'https://stockx.com/api/browse?_tags=one%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=two%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=three%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=four%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=five%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=six%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=seven%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=eight%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=nine%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=ten%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=eleven%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=twelve%2Cair%20jordan&currency=AUD&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=thirteen%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=fourteen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=fifteen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=sixteen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=seventeen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=eighteen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=nineteen%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-one%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-two%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-three%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-four%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-five%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-six%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-seven%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-eight%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=twenty-nine%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=thirty%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=thirty-one%2Cair%20jordan&productCategory=sneakers&page=',
+        'https://stockx.com/api/browse?_tags=packs%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=other%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=spizike%2Cair%20jordan&productCategory=sneakers&page=',
         'https://stockx.com/api/browse?_tags=foamposite%2Cnike&productCategory=sneakers&page=',
@@ -331,8 +359,24 @@ def start_hot():
                 if price:
                     number = product.get('styleId')
                     if not mongo.add_hot_platform_with_number('5bace180c7e854cab4dbcc83', number):
-                        helper.log('not in db... url => ' + product.get('shortDescription') + ' number => ' + number, 'stockx')
+                        q.put('https://stockx.com/' + product.get('urlKey'))
+                        helper.log('not in db... url => ' + product.get('urlKey') + ' number => ' + number, 'stockx')
             page += 1
+    # 开始抓取还没有入库的商品
+    while True:
+        queue_size = q.qsize()
+        if queue_size > 0:
+            goods_thread_list = []
+            # 每次启动5个抓取商品的线程
+            for i in range(5 if queue_size > 5 else queue_size):
+                goods_spider = GoodsSpider(q.get(), q, crawl_counter)
+                goods_spider.start()
+                goods_thread_list.append(goods_spider)
+            for t in goods_thread_list:
+                t.join()
+            goods_thread_list = []
+        else:
+            break
 
 
 def start(action):
