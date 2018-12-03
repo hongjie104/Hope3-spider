@@ -151,16 +151,13 @@ def start():
     # 有错误的页面链接
     error_page_url_queue = Queue()
 
-    total_num = 632
+    total_num = 781
     url_list = ['https://store.nike.com/html-services/gridwallData?country=US&lang_locale=en_US&gridwallPath=mens-shoes/7puZoi3&pn=%d' % page for page in range(1, int(math.ceil(total_num / 60 + 0.5)))]
     fetch_page(url_list, 1, q, error_page_url_queue, crawl_counter)
 
-    # total_page = 23
-    # base_url = 'https://www.finishline.com/store/women/shoes/_/N-1hednxh?mnid=women_shoes&isAjax=true&No='
-    # fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in range(1, total_page + 1)], 2, q, error_page_url_queue, {
-    #     'mnid': 'women_shoes',
-    #     'isAjax': 'true',
-    # }, crawl_counter)
+    total_num = 616
+    url_list = ['https://store.nike.com/html-services/gridwallData?country=US&lang_locale=en_US&gridwallPath=womens-shoes/7ptZoi3&pn=%d' % page for page in range(1, int(math.ceil(total_num / 60 + 0.5)))]
+    fetch_page(url_list, 2, q, error_page_url_queue, crawl_counter)
 
     # # 处理出错的链接
     # while not error_page_url_queue.empty():
