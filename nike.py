@@ -83,7 +83,7 @@ class GoodsSpider(Thread):
             price = 0
             for div in pq('div.text-color-black'):
                 if div.get('data-test') == 'product-price':
-                    price = int(div.text.replace('$', ''))
+                    price = float(div.text.replace('$', ''))
                     break
             size_price_arr = []
             for input in pq('div.availableSizeContainer input'):
