@@ -72,48 +72,49 @@ class GoodsSpider(Thread):
         解析网站源码
         '''
         time.sleep(random.randint(2, 5))
-        # try:
-        pq = helper.get(self.url, myHeaders=self.headers, cookies=self.cookies)
-        # 款型名称
-        name = pq('h1#pdp_product_title')[0].text
-        # 配色的编号
-        number = pq('li.description-preview__style-color').text().split(':')[1].strip()
-        # 颜色值
-        color_value = pq('li.description-preview__color-description').text().split(':')[1].strip()
-        price = 0
-        for div in pq('div.text-color-black'):
-            if div.get('data-test') == 'product-price':
-                price = int(div.text.replace('$', ''))
+        try:
+            pq = helper.get(self.url, myHeaders=self.headers, cookies=self.cookies)
+            # 款型名称
+            name = pq('h1#pdp_product_title')[0].text
+            # 配色的编号
+            number = pq('li.description-preview__style-color').text().split(':')[1].strip()
+            # 颜色值
+            color_value = pq('li.description-preview__color-description').text().split(':')[1].strip()
+            price = 0
+            for div in pq('div.text-color-black'):
+                if div.get('data-test') == 'product-price':
+                    price = int(div.text.replace('$', ''))
+                    break
+            size_price_arr = []
+            for input in pq('div.availableSizeContainer input'):
+                # M 3.5 / W 5
+                size = input.get('aria-label').replace('W', '').replace('M', '').replace('C', '').strip()
+                if '/' in size:
+                    size = size.split('/')[0].strip()
+                size_price_arr.append({
+                    'size': float(size),
+                    'price': price,
+                    'isInStock': input.get('disabled', False) == False
+                })
+            img_url = None
+            for source in pq('noscript > picture > source'):
+                img_url = source.get('srcset')
                 break
-        size_price_arr = []
-        for input in pq('div.availableSizeContainer input'):
-            # M 3.5 / W 5
-            size = input.get('aria-label').replace('W', '').replace('M', '').strip()
-            if '/' in size:
-                size = size.split('/')[0].strip()
-            size_price_arr.append({
-                'size': float(size),
-                'price': price,
-                'isInStock': input.get('disabled', False) == False
-            })
-        img_url = None
-        for source in pq('noscript > picture > source'):
-            img_url = source.get('srcset')
-            break
-        if img_url:
-            pass
-        result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
-        if result == 1:
-            # 上传到七牛
-            qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
-        mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, platform, '5be444e3c7e854cab4b252a0', self.crawl_counter, '', True if img_url else False)
-        # except:
-        #     global error_detail_url
-        #     error_counter = error_detail_url.get(self.url, 1)
-        #     error_detail_url[self.url] = error_counter + 1
-        #     helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), platform)
-        #     if error_counter < 3:
-        #         self.q.put(self.url)
+            if img_url:
+                pass
+            result = helper.downloadImg(img_url, os.path.join('.', 'imgs', platform, '%s.jpg' % number))
+            if result == 1:
+                # 上传到七牛
+                qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/%s/%s.jpg' % (platform, number))
+            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, platform, '5be444e3c7e854cab4b252a0', self.crawl_counter, '', True if img_url else False)
+        except Exception as e:
+            global error_detail_url
+            error_counter = error_detail_url.get(self.url, 1)
+            error_detail_url[self.url] = error_counter + 1
+            helper.log('[ERROR] error timer = %s, url = %s' % (error_counter, self.url), platform)
+            helper.log(e, platform)
+            if error_counter < 3:
+                self.q.put(self.url)
 
 
 def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
