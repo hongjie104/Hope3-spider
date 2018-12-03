@@ -144,7 +144,7 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
             break
 
 
-def start():
+def start_spider():
     crawl_counter = mongo.get_crawl_counter(platform)
     # 创建一个队列用来保存进程获取到的数据
     q = Queue()
@@ -176,4 +176,12 @@ def start():
     #         'mnid': 'women_shoes',
     #         'isAjax': 'true',
     #     }, crawl_counter)
+
+
+def start(action):
+    if action == 'common':
+        start_spider()
+    elif action == 'hot':
+        start_hot()
+
     helper.log('done', platform)
