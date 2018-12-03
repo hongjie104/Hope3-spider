@@ -179,12 +179,12 @@ def start_spider():
 
 
 def start(action):
-    # if action == 'common':
-    #     start_spider()
-    # elif action == 'hot':
-    #     start_hot()
+    if action == 'common':
+        start_spider()
+    elif action == 'hot':
+        start_hot()
 
-    goods_spider = GoodsSpider('https://www.nike.com/t/kyrie-5-shoe-sVp7VL', 1, Queue(), 1)
-    goods_spider.start()
+    # goods_spider = GoodsSpider('https://www.nike.com/t/kyrie-5-shoe-sVp7VL', 1, Queue(), 1)
+    # goods_spider.start()
 
     helper.log('done', platform)
