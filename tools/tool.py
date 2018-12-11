@@ -40,6 +40,8 @@ def get_result(goods_type_list):
             number_list = goods_color.get('number', [])
             # 378037 623
             for number in number_list:
+                if not number:
+                    continue
                 match = pattern.match(number)
                 if match and match.group() == number:
                     if number.endswith('a'):
@@ -69,23 +71,32 @@ def get_result(goods_type_list):
 
 
 def main():
-    # 耐克的鞋子
-    goods_type_list = goods_type_collection.find({
-        'brand': objectid.ObjectId('5aba668eee851c35fa151186'),
-        'is_deleted': False,
-    }, {'goods_color_arr': 1, 'name': 1, 'id': 1})
-    goods_type_number_dict, goods_type_wrong_number_dict = get_result(goods_type_list)
-    write_csv('nike.csv', goods_type_number_dict)
-    write_csv('nike_wrong.csv', goods_type_wrong_number_dict)
+    # # 耐克的鞋子
+    # goods_type_list = goods_type_collection.find({
+    #     'brand': objectid.ObjectId('5aba668eee851c35fa151186'),
+    #     'is_deleted': False,
+    # }, {'goods_color_arr': 1, 'name': 1, 'id': 1})
+    # goods_type_number_dict, goods_type_wrong_number_dict = get_result(goods_type_list)
+    # write_csv('nike.csv', goods_type_number_dict)
+    # write_csv('nike_wrong.csv', goods_type_wrong_number_dict)
 
-    # AIR JORDAN
+    # # AIR JORDAN
+    # goods_type_list = goods_type_collection.find({
+    #     'brand': objectid.ObjectId('5aa4f40e30302f3bc95cea7c'),
+    #     'is_deleted': False,
+    # }, {'goods_color_arr': 1, 'name': 1, 'id': 1})
+    # goods_type_number_dict, goods_type_wrong_number_dict = get_result(goods_type_list)
+    # write_csv('jordan.csv', goods_type_number_dict)
+    # write_csv('jordan_wrong.csv', goods_type_wrong_number_dict)
+
+    # ADIDAS
     goods_type_list = goods_type_collection.find({
-        'brand': objectid.ObjectId('5aa4f40e30302f3bc95cea7c'),
+        'brand': objectid.ObjectId('5ac730f5f6a0472a39440322'),
         'is_deleted': False,
     }, {'goods_color_arr': 1, 'name': 1, 'id': 1})
     goods_type_number_dict, goods_type_wrong_number_dict = get_result(goods_type_list)
-    write_csv('jordan.csv', goods_type_number_dict)
-    write_csv('jordan_wrong.csv', goods_type_wrong_number_dict)
+    write_csv('adidas.csv', goods_type_number_dict)
+    write_csv('adidas_wrong.csv', goods_type_wrong_number_dict)
 
 
 if __name__ == '__main__':
