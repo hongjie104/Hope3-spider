@@ -71,12 +71,22 @@ class GoodsSpider(Thread):
                     'price': price,
                     'isInStock': True
                 })
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, 'flightclub', '5ac8592c48555b1ba318964a', self.crawl_counter)
-            img_url = pq('link.hidden').attr('src')
-            result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'flightclub', '%s.jpg' % number))
-            if result == 1:
-                # 上传到七牛
-                qiniuUploader.upload_2_qiniu('flightclub', '%s.jpg' % number, './imgs/flightclub/%s.jpg' % number)
+            img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+            # TODO: 先不管怎么样，图片都先过一遍
+            # if not img_downloaded:
+            if True:
+                try:
+                    img_url = pq('div.mobile-product-image > img.product-img').attr('data-src')
+                except:
+                    img_url = None
+                if not img_url:
+                    img_url = pq('link.hidden').attr('src')
+                result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'flightclub', '%s.jpg' % number))
+                if result == 1:
+                    # 上传到七牛
+                    qiniuUploader.upload_2_qiniu('flightclub', '%s.jpg' % number, './imgs/flightclub/%s.jpg' % number)
+                    img_downloaded = True
+            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, 'flightclub', '5ac8592c48555b1ba318964a', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
@@ -114,29 +124,34 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
             break
 
 
-def start():
-    crawl_counter = mongo.get_crawl_counter('flightclub')
-    # 创建一个队列用来保存进程获取到的数据
-    q = Queue()
-    # 有错误的页面链接
-    error_page_url_queue = Queue()
-    total_page = 70
-    base_url = 'https://www.flightclub.com/men?id=446&limit=90&p='
-    fetch_page([base_url + str(page) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+def start(action):
+    if action == 'common':
+        crawl_counter = mongo.get_crawl_counter('flightclub')
+        # 创建一个队列用来保存进程获取到的数据
+        q = Queue()
+        # 有错误的页面链接
+        error_page_url_queue = Queue()
+        total_page = 70
+        base_url = 'https://www.flightclub.com/men?id=446&limit=90&p='
+        fetch_page([base_url + str(page) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
-    total_page = 4
-    base_url = 'https://www.flightclub.com/women?id=350&limit=90&p='
-    fetch_page([base_url + str(page) for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
+        total_page = 4
+        base_url = 'https://www.flightclub.com/women?id=350&limit=90&p='
+        fetch_page([base_url + str(page) for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
 
-    # 处理出错的链接
-    while not error_page_url_queue.empty():
-        error_page_url_list = []
+        # 处理出错的链接
         while not error_page_url_queue.empty():
-            error_page_url_list.append(error_page_url_queue.get())
+            error_page_url_list = []
+            while not error_page_url_queue.empty():
+                error_page_url_list.append(error_page_url_queue.get())
 
-        error_page_men_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 1]
-        fetch_page(error_page_men_url_list, 1, q, error_page_url_queue, crawl_counter)
+            error_page_men_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 1]
+            fetch_page(error_page_men_url_list, 1, q, error_page_url_queue, crawl_counter)
 
-        error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
-        fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
+            error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
+            fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
     helper.log('done', 'flightclub')
+
+    # pq = helper.get('https://www.flightclub.com/nike-air-force-1-07-white-metallix-silver-021260')
+    # img_url = pq('div.mobile-product-image > img.product-img').attr('data-src')
+    # print(img_url)

@@ -73,6 +73,8 @@ def downloadImg(url, imgPath):
 						f.write(chunk)
 						f.flush()
 		return 1
+	else:
+		print('download img error => url is None')
 	return -1
 
 
