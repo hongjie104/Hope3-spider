@@ -209,7 +209,7 @@ def fetch_page(gender, sort_by, query, q, error_page_url_queue, crawl_counter):
             return True
 
 
-def start():
+def start(action):
     # 读取今天已经抓取过的url
     global fetched_url_list
     json_txt = helper.readFile('./logs/goat-%s.json' % helper.today())
@@ -231,27 +231,29 @@ def start():
     # 有错误的页面链接
     error_page_url_queue = Queue()
 
+    # TODO:
+    key_list = ['DUNK']
     for key in key_list:
         key = key.replace('\n', '')
         helper.log('[INFO] now key = ' + key, platform)
         # 先取男鞋 价格从低到高
-        # if fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
-        #     helper.log('[INFO] => fetch_page is done, 1, PRICE_LOW_HIGH', platform)
-        # # 先取男鞋 价格从高到低
-        # if fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
-        #     helper.log('[INFO] => fetch_page is done, 1, PRICE_HIGH_LOW', platform)
-        # # 先取女鞋 价格从低到高
-        # if fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
-        #     helper.log('[INFO] => fetch_page is done, 2, PRICE_LOW_HIGH', platform)
-        # # 先取女鞋 价格从高到低
-        # if fetch_page(2, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
-        #     helper.log('[INFO] => fetch_page is done, 2, PRICE_HIGH_LOW', platform)
+        if fetch_page(1, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+            helper.log('[INFO] => fetch_page is done, 1, PRICE_LOW_HIGH', platform)
+        # 先取男鞋 价格从高到低
+        if fetch_page(1, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+            helper.log('[INFO] => fetch_page is done, 1, PRICE_HIGH_LOW', platform)
+        # 先取女鞋 价格从低到高
+        if fetch_page(2, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
+            helper.log('[INFO] => fetch_page is done, 2, PRICE_LOW_HIGH', platform)
+        # 先取女鞋 价格从高到低
+        if fetch_page(2, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+            helper.log('[INFO] => fetch_page is done, 2, PRICE_HIGH_LOW', platform)
         # 先取青少年鞋 价格从低到高
         if fetch_page(5, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
             helper.log('[INFO] => fetch_page is done, 5, PRICE_LOW_HIGH', platform)
-        # # 先取青少年鞋 价格从高到低
-        # if fetch_page(5, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
-        #     helper.log('[INFO] => fetch_page is done, 5, PRICE_HIGH_LOW', platform)
+        # 先取青少年鞋 价格从高到低
+        if fetch_page(5, 'PRICE_HIGH_LOW', key, q, error_page_url_queue, crawl_counter):
+            helper.log('[INFO] => fetch_page is done, 5, PRICE_HIGH_LOW', platform)
         #     # 先取婴儿鞋 价格从低到高
         #     if fetch_page(6, 'PRICE_LOW_HIGH', key, q, error_page_url_queue, crawl_counter):
         #         helper.log('[INFO] => fetch_page is done, 6, PRICE_LOW_HIGH', platform)
