@@ -100,15 +100,19 @@ class GoodsSpider(Thread):
             except:
                 price = 0.0
             aria_label_list = pq('div#productSizes button')
-            size_price_arr = [{'size': float(re.compile(r'\d+\.[05]').findall(a.get('aria-label'))[0]), 'price': price, 'isInStock': 'unavailable' not in a.get('aria-label')} for a in aria_label_list]
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, '', 'finishline', '5ac8594e48555b1ba31896ba', self.crawl_counter)
+            # size_price_arr = [{'size': float(re.compile(r'\d+\.[05]').findall(a.get('aria-label'))[0]), 'price': price, 'isInStock': 'unavailable' not in a.get('aria-label')} for a in aria_label_list]
+            size_price_arr = [{'size': a.get('aria-label'), 'price': price, 'isInStock': 'unavailable' not in a.get('aria-label')} for a in aria_label_list]
             # 下载图片
-            img_list = pq('div.pdp-image')
-            img_url = 'https:' + (img_list[2].get('data-large') if len(img_list) > 2 else img_list[-1].get('data-large'))
-            result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'finishline', '%s.jpg' % number))
-            if result == 1:
-                # 上传到七牛
-                qiniuUploader.upload_2_qiniu('finishline', '%s.jpg' % number, './imgs/finishline/%s.jpg' % number)
+            img_downloaded = is_pending_goods_img_downloaded
+            if not img_downloaded:
+                img_list = pq('div.pdp-image')
+                img_url = 'https:' + (img_list[2].get('data-large') if len(img_list) > 2 else img_list[-1].get('data-large'))
+                result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'finishline', '%s.jpg' % number))
+                if result == 1:
+                    # 上传到七牛
+                    qiniuUploader.upload_2_qiniu('finishline', '%s.jpg' % number, './imgs/finishline/%s.jpg' % number)
+                    img_downloaded = True
+            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, '', 'finishline', '5ac8594e48555b1ba31896ba', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
@@ -146,42 +150,43 @@ def fetch_page(url_list, gender, q, error_page_url_queue, post_body, crawl_count
             break
 
 
-def start():
-    crawl_counter = mongo.get_crawl_counter('finishline')
-    # 创建一个队列用来保存进程获取到的数据
-    q = Queue()
-    # 有错误的页面链接
-    error_page_url_queue = Queue()
-    total_page = 35
-    base_url = 'https://www.finishline.com/store/men/shoes/_/N-1737dkj?mnid=men_shoes&Ns=sku.daysAvailable%7C0&isAjax=true&No='
-    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in range(1, total_page + 1)], 1, q, error_page_url_queue, {
-        'mnid': 'men_shoes',
-        'Ns': 'sku.bestSeller | 1',
-        'isAjax': 'true'
-    }, crawl_counter)
-
-    total_page = 23
-    base_url = 'https://www.finishline.com/store/women/shoes/_/N-1hednxh?mnid=women_shoes&isAjax=true&No='
-    fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in range(1, total_page + 1)], 2, q, error_page_url_queue, {
-        'mnid': 'women_shoes',
-        'isAjax': 'true',
-    }, crawl_counter)
-
-    # 处理出错的链接
-    while not error_page_url_queue.empty():
-        error_page_url_list = []
-        while not error_page_url_queue.empty():
-            error_page_url_list.append(error_page_url_queue.get())
-
-        error_page_men_url_list = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 1]
-        fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_men_url_list], 1, q, error_page_url_queue, {
+def start(action):
+    if action == 'common':
+        crawl_counter = mongo.get_crawl_counter('finishline')
+        # 创建一个队列用来保存进程获取到的数据
+        q = Queue()
+        # 有错误的页面链接
+        error_page_url_queue = Queue()
+        total_page = 35
+        base_url = 'https://www.finishline.com/store/men/shoes/_/N-1737dkj?mnid=men_shoes&Ns=sku.daysAvailable%7C0&isAjax=true&No='
+        fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in range(1, total_page + 1)], 1, q, error_page_url_queue, {
             'mnid': 'men_shoes',
             'Ns': 'sku.bestSeller | 1',
             'isAjax': 'true'
         }, crawl_counter)
-        error_page_women_url_list = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 2]
-        fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_women_url_list], 2, q, error_page_url_queue, {
+
+        total_page = 23
+        base_url = 'https://www.finishline.com/store/women/shoes/_/N-1hednxh?mnid=women_shoes&isAjax=true&No='
+        fetch_page([{'url': base_url + str((page - 1) * 40), 'count': (page - 1) * 40} for page in range(1, total_page + 1)], 2, q, error_page_url_queue, {
             'mnid': 'women_shoes',
             'isAjax': 'true',
         }, crawl_counter)
+
+        # 处理出错的链接
+        while not error_page_url_queue.empty():
+            error_page_url_list = []
+            while not error_page_url_queue.empty():
+                error_page_url_list.append(error_page_url_queue.get())
+
+            error_page_men_url_list = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 1]
+            fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_men_url_list], 1, q, error_page_url_queue, {
+                'mnid': 'men_shoes',
+                'Ns': 'sku.bestSeller | 1',
+                'isAjax': 'true'
+            }, crawl_counter)
+            error_page_women_url_list = [{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_url_list if url_data.get('gender') == 2]
+            fetch_page([{'url': url_data.get('url'), 'count': url_data.get('count')} for url_data in error_page_women_url_list], 2, q, error_page_url_queue, {
+                'mnid': 'women_shoes',
+                'isAjax': 'true',
+            }, crawl_counter)
     helper.log('done', 'finishline')
