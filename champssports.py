@@ -72,7 +72,7 @@ class GoodsSpider(Thread):
             size_all_list = size_all_list.get('AVAILABLE_SIZES')
             size_all_list = [float(size.strip()) for size in size_all_list]
             size_price_json = json.loads(re.compile(r'var sizeObj =.*}];').findall(pq.html())[0].replace('var sizeObj = ', '').replace('}];', '}]'))
-            size_price_json = [{'size': float(item.get('size').strip()), 'price': float(item.get('pr_sale').strip())} for item in size_price_json]
+            size_price_json = [{'size': item.get('size').strip(), 'price': float(item.get('pr_sale').strip())} for item in size_price_json]
             # size_price_list = [{'size': float(a.get('size').strip()), 'price': float(a.get('pr_sale').strip())} for a in size_price_json]
             size_price_list = []
             for size in size_all_list:
@@ -93,8 +93,8 @@ class GoodsSpider(Thread):
                         'isInStock': False,
                     })
             # helper.log(name, number, self.url, size_price_list)
-            result = mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], self.gender, '', 'champssports', '5af1310e48555b1ba3387bcc', self.crawl_counter)
-            if result:
+            img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+            if not img_downloaded:
                 img_response = helper.get('https://images.champssports.com/is/image/EBFL2/%s?req=imageset,json' % number, returnText=True)
                 img_response = re.compile(r'"IMAGE_SET":"\w+/[_\w]+;').findall(img_response)
                 img_url = 'https://images.champssports.com/is/image/%s?hei=600&wid=600' % img_response[0].replace('"IMAGE_SET":"', '').replace(';', '')
@@ -103,6 +103,8 @@ class GoodsSpider(Thread):
                 if result == 1:
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu('champssports', '%s.jpg' % number, './imgs/champssports/%s.jpg' % number)
+                    img_downloaded = True
+            result = mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], self.gender, '', 'champssports', '5af1310e48555b1ba3387bcc', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
@@ -140,29 +142,31 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
             break
 
 
-def start():
-    crawl_counter = mongo.get_crawl_counter('champssports')
-    # 创建一个队列用来保存进程获取到的数据
-    q = Queue()
-    # 有错误的页面链接
-    error_page_url_queue = Queue()
-    total_page = 16
-    base_url = 'https://www.champssports.com/Mens/Shoes/_-_/N-24Zrj?cm_PAGE=%d&Rpp=180&crumbs=991&Nao=%d'
-    fetch_page([base_url % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+def start(action):
+    if action == 'common':
+        crawl_counter = mongo.get_crawl_counter('champssports')
+        # 创建一个队列用来保存进程获取到的数据
+        q = Queue()
+        # 有错误的页面链接
+        error_page_url_queue = Queue()
+        total_page = 16
+        # https://www.champssports.com/api/products/search?products=&query=%3Arelevance%3Agender%3A200000%3AproductType%3A200005&currentPage=1&pageSize=60&timestamp=0
+        base_url = 'https://www.champssports.com/Mens/Shoes/_-_/N-24Zrj?cm_PAGE=%d&Rpp=180&crumbs=991&Nao=%d'
+        fetch_page([base_url % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
-    total_page = 7
-    base_url = 'https://www.champssports.com/Womens/Shoes/_-_/N-25Zrj?cm_PAGE=%d&Rpp=180&crumbs=991&Nap=%d'
-    fetch_page([base_url % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
+        total_page = 7
+        base_url = 'https://www.champssports.com/Womens/Shoes/_-_/N-25Zrj?cm_PAGE=%d&Rpp=180&crumbs=991&Nap=%d'
+        fetch_page([base_url % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
 
-    # 处理出错的链接
-    while not error_page_url_queue.empty():
-        error_page_url_list = []
+        # 处理出错的链接
         while not error_page_url_queue.empty():
-            error_page_url_list.append(error_page_url_queue.get())
+            error_page_url_list = []
+            while not error_page_url_queue.empty():
+                error_page_url_list.append(error_page_url_queue.get())
 
-        error_page_men_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 1]
-        fetch_page(error_page_men_url_list, 1, q, error_page_url_queue, crawl_counter)
-        error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
-        fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
+            error_page_men_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 1]
+            fetch_page(error_page_men_url_list, 1, q, error_page_url_queue, crawl_counter)
+            error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
+            fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
 
     helper.log('done', 'champssports')

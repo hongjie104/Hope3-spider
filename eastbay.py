@@ -92,7 +92,6 @@ class GoodsSpider(Thread):
                         size_price['price'] = float(available_size.get('pr_sale'))
                         break
 
-            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, 'eastbay', '5b04ff19b0394165bc8de23d', self.crawl_counter)
             img_json_str = helper.get('https://images.eastbay.com/is/image/EBFL2/%sMM?req=set,json' % number, returnText=True)
             img_json = None
             img_url = None
@@ -116,6 +115,7 @@ class GoodsSpider(Thread):
                     img_url = None
             # print(name, number ,color_value, size_price_arr)
             # print(img_url)
+            img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
             if img_url:
                 img_url = 'https://images.eastbay.com/is/image/%s?wid=600&hei=600&fmt=jpg' % img_url
                 # print(img_url)
@@ -123,6 +123,8 @@ class GoodsSpider(Thread):
                 if result == 1:
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu('eastbay', '%s.jpg' % number, './imgs/eastbay/%s.jpg' % number)
+                    img_downloaded = True
+            mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, 'eastbay', '5b04ff19b0394165bc8de23d', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
@@ -160,26 +162,27 @@ def fetch_page(url_list, gender, q, error_page_url_queue, crawl_counter):
             break
 
 
-def start():
-    crawl_counter = mongo.get_crawl_counter('eastbay')
-    # 创建一个队列用来保存进程获取到的数据
-    q = Queue()
-    # 有错误的页面链接
-    error_page_url_queue = Queue()
-    total_page = 158
-    fetch_page(['https://www.eastbay.com/Mens/_-_/N-1p?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+def start(action):
+    if action == 'common':
+        crawl_counter = mongo.get_crawl_counter('eastbay')
+        # 创建一个队列用来保存进程获取到的数据
+        q = Queue()
+        # 有错误的页面链接
+        error_page_url_queue = Queue()
+        total_page = 158
+        fetch_page(['https://www.eastbay.com/Mens/_-_/N-1p?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
-    total_page = 66
-    fetch_page(['https://www.eastbay.com/Womens/_-_/N-1q?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) *180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
+        total_page = 66
+        fetch_page(['https://www.eastbay.com/Womens/_-_/N-1q?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) *180, (page - 1) * 180) for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
 
-    # 处理出错的链接
-    while not error_page_url_queue.empty():
-        error_page_url_list = []
+        # 处理出错的链接
         while not error_page_url_queue.empty():
-            error_page_url_list.append(error_page_url_queue.get())
+            error_page_url_list = []
+            while not error_page_url_queue.empty():
+                error_page_url_list.append(error_page_url_queue.get())
 
-        error_page_men_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 1]
-        fetch_page(error_page_men_url_list, 1, q, error_page_url_queue, crawl_counter)
-        error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
-        fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
+            error_page_men_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 1]
+            fetch_page(error_page_men_url_list, 1, q, error_page_url_queue, crawl_counter)
+            error_page_women_url_list = [url_data.get('url') for url_data in error_page_url_list if url_data.get('gender') == 2]
+            fetch_page(error_page_women_url_list, 2, q, error_page_url_queue, crawl_counter)
     helper.log('done', 'eastbay')
