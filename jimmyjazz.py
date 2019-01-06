@@ -29,14 +29,10 @@ def fetch_detail(url, page, total_page):
         price = float(pq('div.product_price_content > span.product_price').text().replace('$', ''))
     except:
         price = 0.0
-    
+
     for a in pq('div.box_wrapper > a'):
         # print(a.text, a.get('class'))
-        size = 0
-        try:
-            size = float(a.text)
-        except:
-            size = 0
+        size = a.text
         size_price_arr.append({
             'isInStock': 'piunavailable' not in a.get('class'),
             'size': size,
@@ -44,15 +40,17 @@ def fetch_detail(url, page, total_page):
         })
     print('size_price_arr = ', size_price_arr)
 
-    mongo.insert_pending_goods(name, number, url, size_price_arr, ['%s.jpg' % number], 'jimmyjazz')
-
-    img_url = pq('img.product_image').attr('src')
-    if not img_url.startswith('http'):
-        img_url = 'http://www.jimmyjazz.com' + img_url
-    print('img_url = ', img_url)
-    if helper.downloadImg(img_url, os.path.join('.', 'imgs', 'jimmyjazz', '%s.jpg' % number)) == 1:
-    # 上传到七牛
-        qiniuUploader.upload_2_qiniu('jimmyjazz', '%s.jpg' % number, './imgs/jimmyjazz/%s.jpg' % number)
+    img_downloaded = mongo.is_pending_goods_img_downloaded(url)
+    if not img_downloaded:
+        img_url = pq('img.product_image').attr('src')
+        if not img_url.startswith('http'):
+            img_url = 'http://www.jimmyjazz.com' + img_url
+        print('img_url = ', img_url)
+        if helper.downloadImg(img_url, os.path.join('.', 'imgs', 'jimmyjazz', '%s.jpg' % number)) == 1:
+        # 上传到七牛
+            qiniuUploader.upload_2_qiniu('jimmyjazz', '%s.jpg' % number, './imgs/jimmyjazz/%s.jpg' % number)
+    img_downloaded = True
+    mongo.insert_pending_goods(name, number, url, size_price_arr, ['%s.jpg' % number], 'jimmyjazz', img_downloaded=img_downloaded)
 
 
 def fetch_page(url, page = 1):
@@ -73,7 +71,8 @@ def fetch_page(url, page = 1):
             break
 
 
-def start():
-    # fetch_page('http://www.jimmyjazz.com/mens/footwear', 21)
-    fetch_page('http://www.jimmyjazz.com/womens/footwear')
-    # fetch_detail('http://www.jimmyjazz.com/mens/footwear/jordan-1-mid-sneaker/554724-605?color=Red')
+def start(action):
+    if action == 'common':
+        fetch_page('http://www.jimmyjazz.com/mens/footwear', 21)
+        fetch_page('http://www.jimmyjazz.com/womens/footwear')
+# fetch_detail('http://www.jimmyjazz.com/mens/footwear/jordan-1-mid-sneaker/554724-605?color=Red')

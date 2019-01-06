@@ -123,7 +123,7 @@ class GoodsSpider(Thread):
                 if result == 1:
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu('eastbay', '%s.jpg' % number, './imgs/eastbay/%s.jpg' % number)
-                    img_downloaded = True
+                img_downloaded = True
             mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, 'eastbay', '5b04ff19b0394165bc8de23d', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
@@ -169,10 +169,10 @@ def start(action):
         q = Queue()
         # 有错误的页面链接
         error_page_url_queue = Queue()
-        total_page = 158
+        total_page = 143
         fetch_page(['https://www.eastbay.com/Mens/_-_/N-1p?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) * 180, (page - 1) * 180) for page in range(1, total_page + 1)], 1, q, error_page_url_queue, crawl_counter)
 
-        total_page = 66
+        total_page = 56
         fetch_page(['https://www.eastbay.com/Womens/_-_/N-1q?cm_PAGE=%d&Rpp=180&crumbs=61&Nao=%d' % ((page - 1) *180, (page - 1) * 180) for page in range(1, total_page + 1)], 2, q, error_page_url_queue, crawl_counter)
 
         # 处理出错的链接

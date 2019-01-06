@@ -89,13 +89,13 @@ class GoodsSpider(Thread):
                 if price.startswith('$'):
                     price = price.replace('$', '').replace(',', '')
                     size_price_list.append({
-                        'size': float(size),
+                        'size': size,
                         'price': float(price),
                         'isInStock': True
                     })
                 else:
                     size_price_list.append({
-                        'size': float(size),
+                        'size': size,
                         'price': 0.0,
                         'isInStock': False
                     })
@@ -121,14 +121,17 @@ class GoodsSpider(Thread):
                 elif key == 'Manufacturer Sku':
                     number = PyQuery(tr).find('td').text().strip()
             # print(name, number, self.url, size_price_list, gender, color_value)
-            result = mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], gender, color_value, 'stadiumgoods', '5b8f484b299207efc1fb0904', self.crawl_counter)
-            if result:
+            img_downloaded = mongo.is_pending_goods_img_downloaded(self.url)
+
+            if not img_downloaded:
                 img_url = pq('div.product-gallery-image > img')[0].get('src')
                 # 下载图片
                 result = helper.downloadImg(img_url, os.path.join('.', 'imgs', 'stadiumgoods', '%s.jpg' % number))
                 if result == 1:
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu('stadiumgoods', '%s.jpg' % number, './imgs/stadiumgoods/%s.jpg' % number)
+                img_downloaded = True
+            mongo.insert_pending_goods(name, number, self.url, size_price_list, ['%s.jpg' % number], gender, color_value, 'stadiumgoods', '5b8f484b299207efc1fb0904', self.crawl_counter, img_downloaded=img_downloaded)
         except:
             global error_detail_url
             error_counter = error_detail_url.get(self.url, 1)
@@ -166,34 +169,39 @@ def fetch_page(url_list, q, error_page_url_queue, crawl_counter):
             break
 
 
-def start():
-    crawl_counter = mongo.get_crawl_counter('stadiumgoods')
-    # 创建一个队列用来保存进程获取到的数据
-    q = Queue()
-    # 有错误的页面链接
-    error_page_url_queue = Queue()
-    total_page = 37
-    url_arr = ['https://www.stadiumgoods.com/nike/page/%d/show/96' % page for page in range(1, total_page + 1)]
-    fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
+def start(action):
+    if action == 'common':
+        crawl_counter = mongo.get_crawl_counter('stadiumgoods')
+        # 创建一个队列用来保存进程获取到的数据
+        q = Queue()
+        # 有错误的页面链接
+        error_page_url_queue = Queue()
+        total_page = 37
+        url_arr = ['https://www.stadiumgoods.com/nike/page/%d/show/96' % page for page in range(1, total_page + 1)]
+        fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
 
-    total_page = 17
-    url_arr = ['https://www.stadiumgoods.com/air-jordan/page/%d/show/96' % page for page in range(1, total_page + 1)]
-    fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
+        total_page = 17
+        url_arr = ['https://www.stadiumgoods.com/air-jordan/page/%d/show/96' % page for page in range(1, total_page + 1)]
+        fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
 
-    total_page = 14
-    url_arr = ['https://www.stadiumgoods.com/adidas/page/%d/show/96' % page for page in range(1, total_page + 1)]
-    fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
+        total_page = 14
+        url_arr = ['https://www.stadiumgoods.com/adidas/page/%d/show/96' % page for page in range(1, total_page + 1)]
+        fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
 
-    total_page = 10
-    url_arr = ['https://www.stadiumgoods.com/footwear/page/%d/show/96' % page for page in range(1, total_page + 1)]
-    fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
+        total_page = 10
+        url_arr = ['https://www.stadiumgoods.com/footwear/page/%d/show/96' % page for page in range(1, total_page + 1)]
+        fetch_page(url_arr, q, error_page_url_queue, crawl_counter)
 
-    # 处理出错的链接
-    while not error_page_url_queue.empty():
-        error_page_url_list = []
+        # 处理出错的链接
         while not error_page_url_queue.empty():
-            error_page_url_list.append(error_page_url_queue.get())
-        # print('wrong page url num:', len(error_page_url_list))
-        fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
+            error_page_url_list = []
+            while not error_page_url_queue.empty():
+                error_page_url_list.append(error_page_url_queue.get())
+            # print('wrong page url num:', len(error_page_url_list))
+            fetch_page(error_page_url_list, q, error_page_url_queue, crawl_counter)
+
+        # -----------
+        # goods_spider = GoodsSpider('https://www.stadiumgoods.com/kobe-ad-922482-100-white-court-purple-black', Queue(), 1)
+        # goods_spider.start()
 
     helper.log('done', 'stadiumgoods')
