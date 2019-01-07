@@ -87,7 +87,7 @@ class GoodsSpider(Thread):
                 if result == 1:
                     # 上传到七牛
                     qiniuUploader.upload_2_qiniu(platform, '%s.jpg' % number, './imgs/flightclub/%s.jpg' % number)
-                    img_downloaded = True
+                img_downloaded = True
             mongo.insert_pending_goods(name, number, self.url, size_price_arr, ['%s.jpg' % number], self.gender, color_value, platform, '5ac8592c48555b1ba318964a', self.crawl_counter, img_downloaded=img_downloaded)
         except Exception as e:
             global error_detail_url
