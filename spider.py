@@ -30,7 +30,7 @@ import sys
 # WEB_DOMAIN = ['footlocker', 'jimmyjazz', 'sneakersnstuff', 'footaction']
 WEB_DOMAIN = ['finishline', 'champssports', 'stadiumgoods',
               'flightclub', 'eastbay', 'stockx', 'goat', 'kickz', 'footlocker',
-              'nike']
+              'nike', 'jimmyjazz']
 
 if __name__ == '__main__':
     for dir_name in WEB_DOMAIN:
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         elif target == 'footlocker':
             footlocker.start(action)
         elif target == 'jimmyjazz':
-            # jimmyjazz.start(action)
+            jimmyjazz.start(action)
             pass
         elif target == 'sneakersnstuff':
             # sneakersnstuff.start(action)
