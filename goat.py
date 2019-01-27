@@ -28,11 +28,14 @@ fetched_url_list = []
 
 def fetch_page_json(gender, sort_by, query, page = 1):
     category = ['men', 'women', 'boy', 'girl', 'youth', 'infant'][gender - 1]
-    json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/ProductVariants/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
+    # json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/ProductVariants/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
+    json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_v2/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
     if sort_by == 'PRICE_LOW_HIGH':
-        json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_by_price_asc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
+        # json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_by_price_asc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
+        json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_v2_by_price_asc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
     elif sort_by == 'PRICE_HIGH_LOW':
-        json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_by_price_desc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
+        # json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_by_price_desc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
+        json_url = 'https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_v2_by_price_desc/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.25.1&x-algolia-application-id=2FWOTDVM2O&x-algolia-api-key=ac96de6fef0e02bb95d433d8d5c7038a'
     try:
         query = urllib.quote(query.upper())
     except:
